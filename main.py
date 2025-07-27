@@ -38,6 +38,7 @@ class ScoreResult(BaseModel):
     ten_ring: int
     nine_ring: int
     other_hits: int
+    coaching_analysis: list[str]
     suggestions: list[str]
 
 @app.post("/upload", response_model=ScoreResult)
@@ -63,10 +64,10 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
         prompt = (
             "You are an expert firearms instructor and target analysis AI. "
             "You are given an image of a paper shooting target from uploaded image. "
-            "Identify and count the number of visible bullet holes. "
-            "Then count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones. "
+            "Identify and count the number of visible bullet holes and shooting pattern. "
+            "Then count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones. Provide coaching analysis and suggestions for improvement."
             "Respond ONLY in compact JSON format, like:"
-            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"suggestions\": [\"tip1\", \"tip2\"]}"
+            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"]}"
         )
 
         response = openai.ChatCompletion.create(
