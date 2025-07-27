@@ -1,7 +1,8 @@
 # 📦 FastAPI backend - Bullet Hole Detection using OpenAI Vision (Prototype)
 
 from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
+#from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import shutil
 import uuid
