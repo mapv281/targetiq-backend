@@ -70,7 +70,8 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}
             ]}
         ],
-        max_tokens=500
+        #max_tokens=500
+        max_tokens=10000
     )
 
     try:
