@@ -95,6 +95,6 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
 
         
         except Exception as e:
-        logging.exception(f"OpenAI Vision processing failed: {str(e)}")
+        logging.exception(f"OpenAI Vision processing failed")
         raise HTTPException(status_code=500, detail=f"OpenAI Vision processing failed: {str(e)}")
 
