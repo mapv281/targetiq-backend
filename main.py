@@ -1,7 +1,8 @@
 # 📦 FastAPI backend - Bullet Hole Detection using OpenAI Vision (Improved with Error Logging)
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+#from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import shutil
 import uuid
@@ -43,7 +44,7 @@ class ScoreResult(BaseModel):
 async def upload_target(file: UploadFile = File(...)):
     try:
         file_id = str(uuid.uuid4())
-        target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
+        target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpeg")
 
         with open(target_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -79,6 +80,7 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
         )
 
         content = response["choices"][0]["message"]["content"]
+        logging.info(f"OpenAI Response: {content}")  # ADD THIS LINE
         import json
         data = json.loads(content)
         return ScoreResult(**data)
