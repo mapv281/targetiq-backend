@@ -81,4 +81,4 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             suggestions=["OpenAI Vision parsing failed. Please try a different image or refine the prompt."]
         )
 
-    self.send_header("Access-Control-Allow-Origin", "*")
+    #self.send_header("Access-Control-Allow-Origin", "*")
