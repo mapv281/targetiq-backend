@@ -14,7 +14,8 @@ app = FastAPI()
 
 origins = [
     "http://localhost:3000",  # Your local frontend development server
-    "https://targetiq-frontend-f2p3axuf1-mauricios-projects-1565b5ab.vercel.app"
+    "https://targetiq-frontend-f2p3axuf1-mauricios-projects-1565b5ab.vercel.app",
+    "https://targetiq-frontend.vercel.app"
 ]
 
 app.add_middleware(
