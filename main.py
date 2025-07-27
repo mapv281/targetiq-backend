@@ -80,3 +80,11 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             other_hits=0,
             suggestions=["OpenAI Vision parsing failed. Please try a different image or refine the prompt."]
         )
+
+    origins = [
+        "http://localhost:3000",  # Your local frontend development server
+        "http://localhost:3001",  # Your local frontend development server
+        "http://localhost:3002" #,  # Your local frontend development server
+        #"https://your-frontend-domain.com", # Your deployed frontend domain
+        # Add other allowed origins as needed
+    ]
