@@ -1,15 +1,19 @@
+# 📦 FastAPI backend - Bullet Hole Detection (Prototype)
+
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import shutil
-import uuid
+import cv2
+import numpy as np
 import os
+import uuid
+import shutil
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, use specific domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,19 +33,57 @@ class ScoreResult(BaseModel):
 @app.post("/upload", response_model=ScoreResult)
 async def upload_target(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
-    file_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
-    with open(file_path, "wb") as buffer:
+    target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
+    with open(target_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    return simulate_scoring(file_path)
+    return detect_bullet_holes(target_path)
 
-def simulate_scoring(path: str) -> ScoreResult:
-    import random
-    hits = [random.randint(6, 10) for _ in range(20)]
+def detect_bullet_holes(image_path: str) -> ScoreResult:
+    img = cv2.imread(image_path)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+
+    # Detect circles (holes) using Hough Transform
+    circles = cv2.HoughCircles(
+        blurred,
+        cv2.HOUGH_GRADIENT,
+        dp=1.2,
+        minDist=20,
+        param1=100,
+        param2=30,
+        minRadius=5,
+        maxRadius=15
+    )
+
+    x_ring = ten_ring = nine_ring = other_hits = 0
+    total = 0
+
+    if circles is not None:
+        circles = np.round(circles[0, :]).astype("int")
+        total = len(circles)
+
+        for (x, y, r) in circles:
+            # For prototype, simulate zone based on y position (you can enhance this)
+            if y < 100:
+                x_ring += 1
+            elif y < 200:
+                ten_ring += 1
+            elif y < 300:
+                nine_ring += 1
+            else:
+                other_hits += 1
+
+    suggestions = []
+    if other_hits > 5:
+        suggestions.append("Try to improve consistency and focus on sight alignment.")
+    if x_ring >= 3:
+        suggestions.append("Excellent precision! Work on tightening group further.")
+
     return ScoreResult(
-        total_shots=len(hits),
-        x_ring=hits.count(10),
-        ten_ring=hits.count(9),
-        nine_ring=hits.count(8),
-        other_hits=hits.count(6) + hits.count(7),
-        suggestions=["Good grouping, work on consistent trigger press."]
+        total_shots=total,
+        x_ring=x_ring,
+        ten_ring=ten_ring,
+        nine_ring=nine_ring,
+        other_hits=other_hits,
+        suggestions=suggestions
     )
