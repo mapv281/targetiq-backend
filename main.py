@@ -87,7 +87,7 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             nine_ring=0,
             other_hits=0,
             #suggestions=["OpenAI Vision parsing failed. Please try a different image or refine the prompt."]
-        suggestions=e.message.splitlines(1) if hasattr(e, 'message') else ["An error occurred while processing the image."]
+        suggestions=e.message
         
         )
 
