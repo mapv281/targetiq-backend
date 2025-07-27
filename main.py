@@ -41,7 +41,7 @@ class ScoreResult(BaseModel):
 @app.post("/upload", response_model=ScoreResult)
 async def upload_target(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
-    target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
+    target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpeg")
 
     with open(target_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -70,8 +70,7 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}
             ]}
         ],
-        #max_tokens=500
-        max_tokens=10000
+        max_tokens=500
     )
 
     try:
