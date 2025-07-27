@@ -1,13 +1,13 @@
-# 📦 FastAPI backend - Bullet Hole Detection (Prototype)
+# 📦 FastAPI backend - Bullet Hole Detection using OpenAI Vision (Prototype)
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import cv2
-import numpy as np
-import os
-import uuid
 import shutil
+import uuid
+import os
+import openai
+import base64
 
 app = FastAPI()
 
@@ -22,6 +22,8 @@ app.add_middleware(
 UPLOAD_DIR = "uploaded_targets"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environment variables
+
 class ScoreResult(BaseModel):
     total_shots: int
     x_ring: int
@@ -34,56 +36,47 @@ class ScoreResult(BaseModel):
 async def upload_target(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
     target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
+
     with open(target_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    return detect_bullet_holes(target_path)
 
-def detect_bullet_holes(image_path: str) -> ScoreResult:
-    img = cv2.imread(image_path)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+    result = await detect_bullet_holes_with_openai(target_path)
+    return result
 
-    # Detect circles (holes) using Hough Transform
-    circles = cv2.HoughCircles(
-        blurred,
-        cv2.HOUGH_GRADIENT,
-        dp=1.2,
-        minDist=20,
-        param1=100,
-        param2=30,
-        minRadius=5,
-        maxRadius=15
+async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
+    with open(image_path, "rb") as img_file:
+        b64_img = base64.b64encode(img_file.read()).decode("utf-8")
+
+    prompt = (
+        "You are an expert firearms instructor and target analysis AI. "
+        "You are given an image of a paper shooting target. "
+        "Identify and count the number of visible bullet holes. "
+        "Then estimate how many of them landed in the X-ring, 10-ring, 9-ring, and outside those zones. "
+        "Respond in JSON format with: total_shots, x_ring, ten_ring, nine_ring, other_hits, and a short list of suggestions."
     )
 
-    x_ring = ten_ring = nine_ring = other_hits = 0
-    total = 0
-
-    if circles is not None:
-        circles = np.round(circles[0, :]).astype("int")
-        total = len(circles)
-
-        for (x, y, r) in circles:
-            # For prototype, simulate zone based on y position (you can enhance this)
-            if y < 100:
-                x_ring += 1
-            elif y < 200:
-                ten_ring += 1
-            elif y < 300:
-                nine_ring += 1
-            else:
-                other_hits += 1
-
-    suggestions = []
-    if other_hits > 5:
-        suggestions.append("Try to improve consistency and focus on sight alignment.")
-    if x_ring >= 3:
-        suggestions.append("Excellent precision! Work on tightening group further.")
-
-    return ScoreResult(
-        total_shots=total,
-        x_ring=x_ring,
-        ten_ring=ten_ring,
-        nine_ring=nine_ring,
-        other_hits=other_hits,
-        suggestions=suggestions
+    response = openai.ChatCompletion.create(
+        model="gpt-4-vision-preview",
+        messages=[
+            {"role": "user", "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}
+            ]}
+        ],
+        max_tokens=500
     )
+
+    try:
+        content = response["choices"][0]["message"]["content"]
+        import json
+        data = json.loads(content)
+        return ScoreResult(**data)
+    except Exception as e:
+        return ScoreResult(
+            total_shots=0,
+            x_ring=0,
+            ten_ring=0,
+            nine_ring=0,
+            other_hits=0,
+            suggestions=["OpenAI Vision parsing failed. Please try a different image or refine the prompt."]
+        )
