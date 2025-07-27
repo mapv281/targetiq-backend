@@ -62,7 +62,8 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
     )
 
     response = openai.ChatCompletion.create(
-        model="gpt-4-vision-preview",
+        #model="gpt-4-vision-preview",
+        model="gpt-4o",
         messages=[
             {"role": "user", "content": [
                 {"type": "text", "text": prompt},
