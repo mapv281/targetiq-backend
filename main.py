@@ -14,13 +14,12 @@ app = FastAPI()
 
 origins = [
     "http://localhost:3000",  # Your local frontend development server
-    "http://localhost:3001",  # Your local frontend development server
-    "http://localhost:3002"
+    "https://targetiq-frontend-f2p3axuf1-mauricios-projects-1565b5ab.vercel.app"
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins= origins,
     allow_credentials=True,
     allow_methods=["POST", "GET", "HEAD", "OPTIONS"],
     allow_headers=["*"]
