@@ -65,8 +65,8 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             "You are given an image of a paper shooting target from uploaded image. "
             "Identify and count the number of visible bullet holes. "
             "Then count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones. "
-            "Respond ONLY in compact JSON format"
-            #"{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"suggestions\": [\"tip1\", \"tip2\"]}"
+            "Respond ONLY in compact JSON format, like:"
+            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"suggestions\": [\"tip1\", \"tip2\"]}"
         )
 
         response = openai.ChatCompletion.create(
