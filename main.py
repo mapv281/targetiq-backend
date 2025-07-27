@@ -64,8 +64,9 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             "You are an expert firearms instructor and target analysis AI. "
             "You are given an image of a paper shooting target from uploaded image. "
             "Identify and count the number of visible bullet holes. "
-            "Then estimate the percentage from total count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones. "
-            "Respond in JSON format with: total_shots, x_ring, ten_ring, nine_ring, other_hits, and a short list of suggestions."
+            "Then count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones. "
+            "Respond ONLY in compact JSON format, like:"
+            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"suggestions\": [\"tip1\", \"tip2\"]}"
         )
 
         response = openai.ChatCompletion.create(
