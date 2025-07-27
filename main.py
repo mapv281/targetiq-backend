@@ -87,13 +87,13 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
         import json
         try:
             data = json.loads(content)
+            return ScoreResult(**data)
         except json.JSONDecodeError as json_err:
             logging.error(f"JSON parsing failed: {json_err}")
             logging.error(f"Raw content: {content}")
             raise HTTPException(status_code=500, detail="Failed to parse OpenAI response as JSON.")
 
-        return ScoreResult(**data)
-
+        
         except Exception as e:
         logging.error(f"OpenAI Vision processing failed: {str(e)}")
         if hasattr(e, 'response') and hasattr(e.response, 'text'):
