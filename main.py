@@ -12,12 +12,18 @@ import base64
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",  # Your local frontend development server
+    "http://localhost:3001",  # Your local frontend development server
+    "http://localhost:3002"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 UPLOAD_DIR = "uploaded_targets"
@@ -82,4 +88,11 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             suggestions=["OpenAI Vision parsing failed. Please try a different image or refine the prompt."]
         )
 
-    #self.send_header("Access-Control-Allow-Origin", "*")
+   # origins = [ *
+        #"http://localhost:3000",  # Your local frontend development server
+        #"http://localhost:3001",  # Your local frontend development server
+        #"http://localhost:3002" #,  # Your local frontend development server
+        #"https://your-frontend-domain.com", # Your deployed frontend domain
+        # Add other allowed origins as needed
+    #]
+    
