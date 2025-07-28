@@ -35,6 +35,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environm
 class ScoreResult(BaseModel):
     #shooter profile
     shooter_name: str
+    dominant_eye: str
+    training_goals: str
     shooter_handedness: str
     shooter_caliber: str
     shooter_target_type: str
@@ -53,8 +55,10 @@ class ScoreResult(BaseModel):
     areas_of_improvement: list[str]
     suggestions: list[str]
     summary: str
-    corrective_drills: list[str]
     coaching_recommendations: dict[str, dict[str, str]]
+    corrective_drills: list[str]
+    
+    
 
 @app.post("/upload", response_model=ScoreResult)
 async def upload_target(file: UploadFile = File(...)):
