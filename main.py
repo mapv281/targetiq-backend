@@ -55,7 +55,7 @@ class ScoreResult(BaseModel):
     areas_of_improvement: list[str]
     suggestions: list[str]
     summary: str
-    coaching_recommendations: dict[str, dict[str, str]]
+    coaching_recommendations: list[str]
     #corrective_drills: list[str]
     
     
