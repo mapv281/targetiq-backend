@@ -95,7 +95,7 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             "Target type = NRA B-18"
             "Location = Indoor Range"
             "Then count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones." 
-            "Provide shot distribution overview, coaching analysis, corrective drills, analysis, recommendations, and suggestions for improvement."
+            "Provide shot distribution overview, coaching analysis, corrective drills, recommendations, and suggestions for improvement."
             #"Respond ONLY in compact JSON format"
             "Respond ONLY in compact JSON format, like:"
             #"{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text}"
