@@ -1,3 +1,6 @@
+
+
 fastapi[all]
 uvicorn[standard]
+openai==0.28 
 python-multipart
