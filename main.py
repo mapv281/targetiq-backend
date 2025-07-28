@@ -35,6 +35,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environm
 class ScoreResult(BaseModel):
     #shooter profile
     shooter_name: str
+    dominant_eye: str
+    training_goals: str
     shooter_handedness: str
     shooter_caliber: str
     shooter_target_type: str
@@ -53,8 +55,10 @@ class ScoreResult(BaseModel):
     areas_of_improvement: list[str]
     suggestions: list[str]
     summary: str
-    corrective_drills: list[str]
-    coaching_recommendations: dict[str, dict[str, str]]
+    recommendations: str
+    corrective_drills: str
+    
+    
 
 @app.post("/upload", response_model=ScoreResult)
 async def upload_target(file: UploadFile = File(...)):
@@ -91,10 +95,11 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             "Target type = NRA B-18"
             "Location = Indoor Range"
             "Then count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones." 
-            "Provide shot distribution overview, coaching analysis, corrective drills (name, description), analysis, grouping, primary cluster (location, rings, interpretation), secondary cluster (location, interpretation), outliers (locations, interpretation), coaching recommendations (trigger control, issue, solution, grip, issue, solution, sight picture and follow through (recommendation), and suggestions for improvement."
+            "Provide shot distribution overview, coaching analysis, corrective drills, recommendations, and suggestions for improvement."
+            #"Respond ONLY in compact JSON format"
             "Respond ONLY in compact JSON format, like:"
             #"{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text}"
-            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, \"shooter_target_type\": text, \"shooter_name\": text, \"dominant_eye\": text, \"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, \"shooter_location\": text, \"coaching_recommendations\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"corrective_drills\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"]}"
+            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, \"shooter_target_type\": text, \"shooter_name\": text, \"dominant_eye\": text, \"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, \"shooter_location\": text, \"recommendations\": text, \"corrective_drills\": text}"
         )
 
         response = openai.ChatCompletion.create(
