@@ -55,8 +55,8 @@ class ScoreResult(BaseModel):
     areas_of_improvement: list[str]
     suggestions: list[str]
     summary: str
-    #coaching_recommendations: dict[str, dict[str, str]]
-    #corrective_drills: list[str]
+    recommendations: list[str]
+    corrective_drills: list[str]
     
     
 
@@ -98,7 +98,7 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             "Provide shot distribution overview, coaching analysis, corrective drills, analysis, coaching recommendations, and suggestions for improvement."
             "Respond ONLY in compact JSON format, like:"
             #"{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text}"
-            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, \"shooter_target_type\": text, \"shooter_name\": text, \"dominant_eye\": text, \"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, \"shooter_location\": text}"
+            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, \"shooter_target_type\": text, \"shooter_name\": text, \"dominant_eye\": text, \"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, \"shooter_location\": text, \"recommendations\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"corrective_drills\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"]}"
         )
 
         response = openai.ChatCompletion.create(
