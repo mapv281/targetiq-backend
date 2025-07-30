@@ -88,7 +88,7 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
 "Provide total shots, shot group pattern, shot vertical pattern, shot distribution overview, coaching analysis, corrective drills, analysis, recommendations, and suggestions for improvement."
              #"Respond in compact JSON format like: {\"html_response\": text}  with value in HTML5 format embedded inside a <div> tag"
              #"Response in JSON friendly format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
-            "Respond in JSON friendly format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
+            "Respond in one line compact JSON format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
         )
 
         response = openai.ChatCompletion.create(
