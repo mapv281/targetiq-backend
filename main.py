@@ -87,6 +87,7 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             "The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
 "Provide total shots, shot group pattern, shot vertical pattern, shot distribution overview, coaching analysis, corrective drills, analysis, recommendations, and suggestions for improvement."
              #"Respond in compact JSON format like: {\"html_response\": text}  with value in HTML5 format embedded inside a <div> tag"
+             "Response in JSON friendly format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
         )
 
         response = openai.ChatCompletion.create(
