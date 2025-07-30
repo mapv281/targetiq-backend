@@ -34,29 +34,30 @@ openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environm
 
 class ScoreResult(BaseModel):
     #shooter profile
-    shooter_name: str
-    dominant_eye: str
-    training_goals: str
-    shooter_handedness: str
-    shooter_caliber: str
-    shooter_target_type: str
-    shooter_firearm_make: str
-    shooter_firearm_model: str
-    shooter_distance: str
-    shooter_location: str
+    #shooter_name: str
+    #dominant_eye: str
+    #training_goals: str
+    #shooter_handedness: str
+    #shooter_caliber: str
+    #shooter_target_type: str
+    #shooter_firearm_make: str
+    #shooter_firearm_model: str
+    #shooter_distance: str
+    #shooter_location: str
     #analysis results
-    total_shots: int
-    x_ring: int
-    ten_ring: int
-    nine_ring: int
-    other_hits: int
-    shot_distribution_overview: str
-    coaching_analysis: list[str]
-    areas_of_improvement: list[str]
-    suggestions: list[str]
-    summary: str
-    recommendations: str
+    #total_shots: int
+    #x_ring: int
+    #ten_ring: int
+    #nine_ring: int
+    #other_hits: int
+    #shot_distribution_overview: str
+    #coaching_analysis: list[str]
+    #areas_of_improvement: list[str]
+    #suggestions: list[str]
+    #summary: str
+    #recommendations: str
     #corrective_drills: str
+    html_response: str
     
     
 
@@ -82,24 +83,10 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
 
         prompt = (
             "You are an expert firearms instructor and target analysis AI. "
-            "You are given an image of a paper shooting target from uploaded image. "
-            "Identify and count the number of visible bullet holes and shooting pattern. "
-            "Shooter's Name = Mauricio Patino"
-            "Shooter's handedness = left"
-            "Shooter's dominant eye = left"
-            "Shooter's Training goals = self-defense"
-            "Shooter's distance from target = 7 yards"
-            "Firearm make = Glock" 
-            "Firearm model = 34 Gen4"
-            "Firearm ammunition = 9mm"
-            "Target type = NRA B-18"
-            "Location = Indoor Range"
-            "Then count of visible bullet holes of how many of them landed in the X-ring, ten-ring, nine-ring, and outside those zones." 
-            "Provide shot distribution overview, coaching analysis, corrective drills, recommendations, and suggestions for improvement."
-            #"Respond ONLY in compact JSON format"
-            "Respond ONLY in compact JSON format, like:"
-            #"{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text}"
-            "{\"total_shots\": 10, \"x_ring\": 3, \"ten_ring\": 2, \"nine_ring\": 3, \"other_hits\": 2, \"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, \"shooter_target_type\": text, \"shooter_name\": text, \"dominant_eye\": text, \"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, \"shooter_location\": text, \"recommendations\": text}"
+            "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
+            "The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
+"Provide total shots, shot group pattern, shot vertical pattern, shot distribution overview, coaching analysis, corrective drills, analysis, recommendations, and suggestions for improvement."
+             "Respond in JSON format like: {\"html_response\": text}  with value in HTML5 format embedded inside a <div> tag"
         )
 
         response = openai.ChatCompletion.create(
