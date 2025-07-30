@@ -107,8 +107,11 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
         #data = json.loads(content)
         import json
         try:
-            data = json.loads(json.dumps(content))
-            return ScoreResult(**data)
+            #data = json.loads(content)
+            #return ScoreResult(**data)Extract the HTML response from the content
+            
+            data = json.loads(content).get("html_response", "")
+            return ScoreResult(html_response=data)
         except json.JSONDecodeError as json_err:
             logging.error(f"JSON parsing failed: {json_err}")
             logging.error(f"Raw content: {content}")
