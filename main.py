@@ -87,7 +87,8 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             "The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
 "Provide total shots, shot group pattern, shot vertical pattern, shot distribution overview, coaching analysis, corrective drills, analysis, recommendations, and suggestions for improvement."
              #"Respond in compact JSON format like: {\"html_response\": text}  with value in HTML5 format embedded inside a <div> tag"
-             "Response in JSON friendly format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
+             #"Response in JSON friendly format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
+            "Respond in JSON friendly format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
         )
 
         response = openai.ChatCompletion.create(
@@ -113,9 +114,9 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
             data = json.loads(content).get("html_response", "")
             return ScoreResult(html_response=data)
         except json.JSONDecodeError as json_err:
-            logging.error(f"JSON parsing failed: {json_err}")
+            logging.error(f"JSON parsing failed MAPV281: {json_err}")
             logging.error(f"Raw content: {content}")
-            raise HTTPException(status_code=500, detail="Failed to parse OpenAI response as JSON.")
+            raise HTTPException(status_code=500, detail="Failed to parse OpenAI response as JSON MAPV281_2.")
             
     except Exception as e:
         logging.error(f"OpenAI Vision processing failed: {str(e)}")
