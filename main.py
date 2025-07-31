@@ -54,7 +54,7 @@ class ScoreResult(BaseModel):
     shot_vertical_pattern: str 
     shot_distribution_overview: str
     coaching_analysis: list[str]
-    #areas_of_improvement: list[str]
+    areas_of_improvement: list[str]
     suggestions: list[str]
     summary: str
     recommendations: str
