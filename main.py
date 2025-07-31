@@ -34,30 +34,32 @@ openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environm
 
 class ScoreResult(BaseModel):
     #shooter profile
-    #shooter_name: str
-    #dominant_eye: str
-    #training_goals: str
-    #shooter_handedness: str
-    #shooter_caliber: str
-    #shooter_target_type: str
-    #shooter_firearm_make: str
-    #shooter_firearm_model: str
-    #shooter_distance: str
-    #shooter_location: str
+    shooter_name: str
+    dominant_eye: str
+    training_goals: str
+    shooter_handedness: str
+    shooter_caliber: str
+    shooter_target_type: str
+    shooter_firearm_make: str
+    shooter_firearm_model: str
+    shooter_distance: str
+    shooter_location: str
     #analysis results
-    #total_shots: int
+    total_shots: int
     #x_ring: int
     #ten_ring: int
     #nine_ring: int
     #other_hits: int
-    #shot_distribution_overview: str
-    #coaching_analysis: list[str]
+    shot_group_pattern: str
+    shot_vertical_pattern: str 
+    shot_distribution_overview: str
+    coaching_analysis: list[str]
     #areas_of_improvement: list[str]
-    #suggestions: list[str]
-    #summary: str
-    #recommendations: str
-    #corrective_drills: str
-    html_response: str
+    suggestions: list[str]
+    summary: str
+    recommendations: str
+    corrective_drills: str
+    #html_response: str
     
     
 
@@ -88,7 +90,9 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
 "Provide total shots, shot group pattern, shot vertical pattern, shot distribution overview, coaching analysis, corrective drills, analysis, recommendations, and suggestions for improvement."
              #"Respond in compact JSON format like: {\"html_response\": text}  with value in HTML5 format embedded inside a <div> tag"
              #"Response in JSON friendly format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
-            "Respond in one line JSON format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
+            #"Respond in one line JSON format with a key 'html_response' containing the HTML5 formatted response inside a <div> tag."
+        "Respond ONLY in compact JSON format, like:"
+        "{\"total_shots\": 10, \"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, \"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"areas_of_improvement\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"suggestions\": [\"tip1\", \"tip2\", \"tip3\", \"tip4\"], \"summary\":  text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, \"shooter_target_type\": text, \"shooter_name\": text, \"dominant_eye\": text, \"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, \"shooter_location\": text, \"recommendations\": text, \"corrective_drills\": text}"
         )
 
         response = openai.ChatCompletion.create(
@@ -108,11 +112,11 @@ async def detect_bullet_holes_with_openai(image_path: str) -> ScoreResult:
         #data = json.loads(content)
         import json
         try:
-            #data = json.loads(content)
-            #return ScoreResult(**data)Extract the HTML response from the content
-            
-            data = json.loads(content).get("html_response", "")
-            return ScoreResult(html_response=data)
+            data = json.loads(content)
+            return ScoreResult(**data)
+
+            #data = json.loads(content).get("html_response", "")
+            #return ScoreResult(html_response=data)
         except json.JSONDecodeError as json_err:
             logging.error(f"JSON parsing failed MAPV281: {json_err}")
             logging.error(f"Raw content: {content}")
