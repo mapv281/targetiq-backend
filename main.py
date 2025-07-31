@@ -113,8 +113,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
             f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {shooter_handedness}, Dominant eye is {shooter_dominant_eye}, "
             #f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance}, "
-            f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance}, "
-            f"Firearm make is {shooter_firearm_make}, Firearm model is 7 yards, "
+            f"Training goals is {shooter_training_goals}, Distance from target is 7 yards, "
+            f"Firearm make is {shooter_firearm_make}, Firearm model is {shooter_firearm_model}, "
             f"Ammunition is {shooter_caliber}, Target type is {shooter_target_type}, Target Shooting Range Location is {shooter_range_location}. "
             #test
             #"The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
