@@ -62,8 +62,8 @@ class ScoreResult(BaseModel):
 #async def upload_target(file: UploadFile = File(...)):
 async def upload_target(
         file: UploadFile = File(...),
-        first_name: str = "Mauricio",
-        last_name: str = "Patino",
+        first_name: str = Form(...), #"Mauricio",
+        last_name: str = Form(...), #"Patino",
         handedness: str = "Left-handed",
         dominant_eye: str = "Left Eye",
         distance: str = str(25),
