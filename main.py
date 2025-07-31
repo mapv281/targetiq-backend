@@ -35,21 +35,16 @@ openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environm
 class ScoreResult(BaseModel):
     #shooter profile
     shooter_name: str
-    dominant_eye: str
-    training_goals: str
+    shooter_dominant_eye: str
+    shooter_training_goals: str
     shooter_handedness: str
     shooter_caliber: str
     shooter_target_type: str
     shooter_firearm_make: str
     shooter_firearm_model: str
     shooter_distance: str
-    shooter_location: str
+    shooter_range_location: str
     #analysis results
-    #total_shots: int
-    #x_ring: int
-    #ten_ring: int
-    #nine_ring: int
-    #other_hits: int
     shot_group_pattern: str
     shot_vertical_pattern: str 
     shot_distribution_overview: str
@@ -117,8 +112,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             "\"coaching_analysis\": [\"tip1\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
             "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, "
             "\"shooter_target_type\": text, \"shooter_name\": text, \"shooter_dominant_eye\": text, "
-            "\"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, "
-            "\"shooter_location\": text, \"recommendations\": text, \"corrective_drills\": text}"
+            "\"shooter_training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, "
+            "\"shooter_range_location\": text, \"recommendations\": text, \"corrective_drills\": text}"
         )
 
         response = openai.ChatCompletion.create(
