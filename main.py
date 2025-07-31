@@ -130,6 +130,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         
         #import json
         #data = json.loads(content)
+        errorResult: str = "Init Error Result"
+
         import json
         from pydantic import ValidationError
         try:
@@ -156,6 +158,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
 
             #return ScoreResult(**data)
             result = ScoreResult(**data)
+            errorResult = result
             return result
 
             #data = json.loads(content).get("html_response", "")
@@ -164,28 +167,28 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             logging.error(f"JSON parsing failed MAPV281: {json_err}")
             logging.error(f"Raw content: {content}")
             logging.error(f"Raw response: {response}")
-            logging.error(f"Raw result: {result}")
+            logging.error(f"Raw result: {errorResult}")
             raise HTTPException(status_code=500, detail="OpenAI returned invalid JSON Format MAPV281_2.")
         
         except TypeError as type_err:
             logging.error(f"Type mismatch in JSON -> ScoreResult: {type_err}")
             logging.error(f"Raw content: {content}")
             logging.error(f"Raw response: {response}")
-            logging.error(f"Raw result: {result}")
+            logging.error(f"Raw result: {errorResult}")
             raise HTTPException(status_code=500, detail="Data type mismatch in OpenAI response MAPV281_3.")
 
     except ValidationError as ve:
         logging.error(f"Pydantic validation error Scott Mosher: {ve}")
         logging.error(f"Raw content: {content}")
         logging.error(f"Raw response: {response}")
-        logging.error(f"Raw result: {result}")
+        logging.error(f"Raw result: {errorResult}")
         raise HTTPException(status_code=500, detail=f"OpenAI response failed schema validation: {ve}")
 
     except Exception as e:
         logging.error(f"OpenAI Vision processing failed: {str(e)}")
         logging.error(f"Raw content: {content}")
         logging.error(f"Raw response: {response}")
-        logging.error(f"Raw result: {result}")
+        logging.error(f"Raw result: {errorResult}")
         if hasattr(e, 'response') and hasattr(e.response, 'text'):
             logging.error(f"OpenAI API response: {e.response.text}")
         raise HTTPException(status_code=500, detail=f"OpenAI Vision processing failed: {str(e)}")
