@@ -3,7 +3,7 @@
 from fastapi import FastAPI, Form, UploadFile, File, HTTPException
 #from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 import shutil
 import uuid
 import os
@@ -133,7 +133,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         errorResult: str = "Init Error Result"
 
         import json
-        from pydantic import ValidationError
+        
         try:
             content = response["choices"][0]["message"]["content"]
             logging.info(f"OpenAI Response: {content}") 
@@ -179,6 +179,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
 
     except ValidationError as ve:
         logging.error(f"Pydantic validation error Scott Mosher: {ve}")
+        logging.error(repr(ve.errors()[0]['type']))
         logging.error(f"Raw content: {content}")
         logging.error(f"Raw response: {response}")
         logging.error(f"Raw result: {errorResult}")
