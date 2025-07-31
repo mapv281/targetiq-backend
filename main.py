@@ -187,7 +187,9 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             raise HTTPException(status_code=500, detail="Data type mismatch in OpenAI response MAPV281_3.")
 
     except ValidationError as ve:
-        logging.error(f"Pydantic validation error: {ve}")
+        logging.error(f"Pydantic validation error Scott Mosher: {ve}")
+        logging.error(f"Raw content: {content}")
+        logging.error(f"Raw response: {response}")
         raise HTTPException(status_code=500, detail=f"OpenAI response failed schema validation: {ve}")
         
     except Exception as e:
