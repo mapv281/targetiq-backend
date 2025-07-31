@@ -112,7 +112,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
             #end test
             "Provide shot group pattern, shot vertical pattern, shot distribution overview, "
             "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
-            "Respond ONLY in compact JSON format like: "
+            "Respond ONLY in one line compact JSON format like: "
             "{\"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
             "\"coaching_analysis\": [\"tip1\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
             "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, "
