@@ -102,8 +102,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
 
         prompt = (
             "You are an expert firearms instructor and target analysis AI. "
-            "You are given an image of a paper shooting target along with the shooter's profile. "
-            f"Shooter's name is {shooter_name}, Handedness is {handedness}, Dominant eye is {dominant_eye}, "
+            "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
+            f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {handedness}, Dominant eye is {dominant_eye}, "
             f"Training goals is {training_goals}, Distance from target is {distance} yards, "
             f"Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
             f"Ammunition is {firearm_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
@@ -111,7 +111,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
             "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
             "Respond ONLY in compact JSON format like: "
             "{\"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
-            "\"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
+            "\"coaching_analysis\": [\"tip1\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
             "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, "
             "\"shooter_target_type\": text, \"shooter_name\": text, \"shooter_dominant_eye\": text, "
             "\"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, "
