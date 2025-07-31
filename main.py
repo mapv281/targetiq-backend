@@ -64,37 +64,38 @@ class ScoreResult(BaseModel):
     
 
 @app.post("/upload", response_model=ScoreResult)
-async def upload_target(file: UploadFile = File(...)):
+#async def upload_target(file: UploadFile = File(...)):
+async def upload_target(
+        file: UploadFile = File(...),
+        first_name: str = "Mauricio",
+        last_name: str = "Patino",
+        handedness: str = "Left-handed",
+        dominant_eye: str = "Left Eye",
+        training_goals: str = "Self-Defense",
+        distance: str = "7 Yards",
+        firearm_make: str = "Glock",
+        firearm_model: str = "34 Gen4",
+        firearm_caliber: str = "9mm Luger",
+        target_type: str = "B-3 Orange",
+        location: str = "Indoor Range"
+):
     try:
         file_id = str(uuid.uuid4())
-        #Inputs
-        first_name: str = "Mauricio"
-        last_name: str = "Patino"
-        handedness: str = "Left-handed"
-        dominant_eye: str = "Left Eye"
-        training_goals: str = "Self-Defense"
-        distance: str = "7 Yards"
-        firearm_make: str = "Glock"
-        firearm_model: str = "34 Gen4"
-        firearm_caliber: str = "9mm Luger"
-        target_type: str = "B-3 Orange"
-        location: str = "Indoor Range"
-        #end of inputs
         target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpeg")
 
         with open(target_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-       # result = await detect_bullet_holes_with_openai(target_path)
-       #with inputs
-        result = await detect_bullet_holes_with_openai(target_path, first_name, last_name, handedness, dominant_eye, training_goals, distance, firearm_make, firearm_model, firearm_caliber, target_type, location)
+        # result = await detect_bullet_holes_with_openai(target_path)
+        #with inputs
+        result = await detect_bullet_holes_with_openai(target_path, shooter_name = f"{first_name} {last_name}", handedness = handedness, dominant_eye = dominant_eye, training_goals = training_goals, distance = distance, firearm_make = firearm_make, firearm_model = firearm_model, firearm_caliber = firearm_caliber, target_type = target_type, location = location)
         return result
     except Exception as e:
         logging.exception("Error occurred while processing the image")
         raise HTTPException(status_code=500, detail="An error occurred while processing the image.")
 
 #with inputs
-async def detect_bullet_holes_with_openai(image_path: str, first_name: str, last_name: str, handedness: str, dominant_eye: str, training_goals: str, distance: str, firearm_make: str, firearm_model: str, firearm_caliber: str, target_type: str, location: str) -> ScoreResult:
+async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, handedness: str, dominant_eye: str, training_goals: str, distance: str, firearm_make: str, firearm_model: str, firearm_caliber: str, target_type: str, location: str) -> ScoreResult:
     try:
         with open(image_path, "rb") as img_file:
             b64_img = base64.b64encode(img_file.read()).decode("utf-8")
@@ -102,19 +103,19 @@ async def detect_bullet_holes_with_openai(image_path: str, first_name: str, last
         prompt = (
             "You are an expert firearms instructor and target analysis AI. "
             "You are given an image of a paper shooting target along with the shooter's profile. "
-            "Shooter's name is {first_name} {last_name}, Handedness is {handedness}, Dominant eye is {dominant_eye}, "
-            "Training goals is {training_goals}, Distance from target is {distance} yards, "
-            "Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
-            "Ammunition is {firearm_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
+            f"Shooter's name is {shooter_name}, Handedness is {handedness}, Dominant eye is {dominant_eye}, "
+            f"Training goals is {training_goals}, Distance from target is {distance} yards, "
+            f"Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
+            f"Ammunition is {firearm_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
             "Provide shot group pattern, shot vertical pattern, shot distribution overview, "
             "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
             "Respond ONLY in compact JSON format like: "
-            '{"shot_group_pattern": text, "shot_vertical_pattern": text, "shot_distribution_overview": text, '
-            '"coaching_analysis": ["tip1", "tip2", "tip3"], "areas_of_improvement": ["tip1"], "suggestions": ["tip1"], '
-            '"summary": text, "shooter_handedness": text, "shooter_distance": text, "shooter_caliber": text, '
-            '"shooter_target_type": text, "shooter_name": text, "shooter_dominant_eye": text, '
-            '"training_goals": text, "shooter_firearm_make": text, "shooter_firearm_model": text, '
-            '"shooter_location": text, "recommendations": text, "corrective_drills": text}'
+            "{\"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
+            "\"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
+            "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, "
+            "\"shooter_target_type\": text, \"shooter_name\": text, \"shooter_dominant_eye\": text, "
+            "\"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, "
+            "\"shooter_location\": text, \"recommendations\": text, \"corrective_drills\": text}"
         )
 
         response = openai.ChatCompletion.create(
