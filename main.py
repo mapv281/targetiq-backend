@@ -79,7 +79,7 @@ async def upload_target(
         last_name: str = "Patino",
         handedness: str = "Left-handed",
         dominant_eye: str = "Left Eye",
-        distance: str = "7",
+        distance: str = str(7),
         location: str = "Indoor Range",
         training_goals: str = "Self-Defense",
         target_type: str = "B-3 Orange",
