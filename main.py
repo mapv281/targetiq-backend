@@ -61,18 +61,31 @@ class ScoreResult(BaseModel):
 @app.post("/upload", response_model=ScoreResult)
 #async def upload_target(file: UploadFile = File(...)):
 async def upload_target(
+        #file: UploadFile = File(...),
+        #first_name: str = Form(...), #"Mauricio",
+        #last_name: str = Form(...), #"Patino",
+        #handedness: str = Form(...), #"Left-handed",
+        #dominant_eye: str = Form(...), #"Left Eye",
+        #training_goals: str = Form(...), #"Self-Defense",
+        #distance: int = 7, #Form(...), #7,
+        #firearm_make: str = Form(...), #"Glock",
+        #firearm_model: str = Form(...), #"34 Gen4",
+        #firearm_caliber: str = Form(...), #"9mm Luger",
+        #target_type: str = Form(...), #"B-3 Orange",
+        #location: str = Form(...), #"Indoor Range"
+
         file: UploadFile = File(...),
-        first_name: str = Form(...), #"Mauricio",
-        last_name: str = Form(...), #"Patino",
-        handedness: str = Form(...), #"Left-handed",
-        dominant_eye: str = Form(...), #"Left Eye",
-        training_goals: str = Form(...), #"Self-Defense",
-        distance: int = 7, #Form(...), #7,
-        firearm_make: str = Form(...), #"Glock",
-        firearm_model: str = Form(...), #"34 Gen4",
-        firearm_caliber: str = Form(...), #"9mm Luger",
-        target_type: str = Form(...), #"B-3 Orange",
-        location: str = Form(...), #"Indoor Range"
+        first_name: str = Form(...),
+        last_name: str = Form(...),
+        handedness: str = Form(...),
+        dominant_eye: str = Form(...),
+        distance: int = Form(...),
+        location: str = Form(...),
+        training_goals: str = Form(...),
+        target_type: str = Form(...),
+        firearm_make: str = Form(...),
+        firearm_model: str = Form(...),
+        firearm_caliber: str = Form(...)
 ):
     try:
         file_id = str(uuid.uuid4())
