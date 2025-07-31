@@ -67,7 +67,7 @@ async def upload_target(
         handedness: str = Form(...), #"Left-handed",
         dominant_eye: str = Form(...), #"Left Eye",
         training_goals: str = Form(...), #"Self-Defense",
-        distance: str = Form(...), #"7 Yards",
+        distance: int = Form(...), #"7 Yards",
         firearm_make: str = Form(...), #"Glock",
         firearm_model: str = Form(...), #"34 Gen4",
         firearm_caliber: str = Form(...), #"9mm Luger",
