@@ -88,14 +88,14 @@ async def upload_target(
 
         # result = await detect_bullet_holes_with_openai(target_path)
         #with inputs
-        result = await detect_bullet_holes_with_openai(target_path, shooter_name = f"{first_name} {last_name}", handedness = handedness, dominant_eye = dominant_eye, training_goals = training_goals, distance = distance, firearm_make = firearm_make, firearm_model = firearm_model, firearm_caliber = firearm_caliber, target_type = target_type, location = location)
+        result = await detect_bullet_holes_with_openai(target_path, shooter_name = f"{first_name} {last_name}", shooter_handedness = handedness, shooter_dominant_eye = dominant_eye, shooter_training_goals = training_goals, shooter_distance = distance, shooter_firearm_make = firearm_make, shooter_firearm_model = firearm_model, shooter_caliber = firearm_caliber, shooter_target_type = target_type, shooter_range_location = location)
         return result
     except Exception as e:
         logging.exception("Error occurred while processing the image")
         raise HTTPException(status_code=500, detail="An error occurred while processing the image.")
 
 #with inputs
-async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, shooter_handedness: str, shooter_dominant_eye: str, training_goals: str, shooter_distance: str, shooter_firearm_make: str, shooter_firearm_model: str, shooter_caliber: str, target_type: str, location: str) -> ScoreResult:
+async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, shooter_handedness: str, shooter_dominant_eye: str, shooter_training_goals: str, shooter_distance: str, shooter_firearm_make: str, shooter_firearm_model: str, shooter_caliber: str, shooter_target_type: str, shooter_range_location: str) -> ScoreResult:
     try:
         with open(image_path, "rb") as img_file:
             b64_img = base64.b64encode(img_file.read()).decode("utf-8")
@@ -104,9 +104,9 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             "You are an expert firearms instructor and target analysis AI. "
             "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
             f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {shooter_handedness}, Dominant eye is {shooter_dominant_eye}, "
-            f"Training goals is {training_goals}, Distance from target is {shooter_distance} yards, "
+            f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance} yards, "
             f"Firearm make is {shooter_firearm_make}, Firearm model is {shooter_firearm_model}, "
-            f"Ammunition is {shooter_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
+            f"Ammunition is {shooter_caliber}, Target type is {shooter_target_type}, Target Shooting Range Location is {shooter_range_location}. "
             #test
             #"The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
             #end test
