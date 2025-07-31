@@ -91,12 +91,14 @@ async def upload_target(
         file_id = str(uuid.uuid4())
         target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpeg")
 
+        stringDistance = f"{distance} yards"
+
         with open(target_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
         # result = await detect_bullet_holes_with_openai(target_path)
         #with inputs
-        result = await detect_bullet_holes_with_openai(target_path, shooter_name = f"{first_name} {last_name}", shooter_handedness = handedness, shooter_dominant_eye = dominant_eye, shooter_training_goals = training_goals, shooter_distance = distance, shooter_firearm_make = firearm_make, shooter_firearm_model = firearm_model, shooter_caliber = firearm_caliber, shooter_target_type = target_type, shooter_range_location = location)
+        result = await detect_bullet_holes_with_openai(target_path, shooter_name = f"{first_name} {last_name}", shooter_handedness = handedness, shooter_dominant_eye = dominant_eye, shooter_training_goals = training_goals, shooter_distance = stringDistance, shooter_firearm_make = firearm_make, shooter_firearm_model = firearm_model, shooter_caliber = firearm_caliber, shooter_target_type = target_type, shooter_range_location = location)
         return result
     except Exception as e:
         logging.exception("Error occurred while processing the image")
@@ -112,7 +114,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             "You are an expert firearms instructor and target analysis AI. "
             "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
             f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {shooter_handedness}, Dominant eye is {shooter_dominant_eye}, "
-            f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance} yards, "
+            f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance}, "
             f"Firearm make is {shooter_firearm_make}, Firearm model is {shooter_firearm_model}, "
             f"Ammunition is {shooter_caliber}, Target type is {shooter_target_type}, Target Shooting Range Location is {shooter_range_location}. "
             #test
