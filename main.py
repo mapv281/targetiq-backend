@@ -103,10 +103,13 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
         prompt = (
             "You are an expert firearms instructor and target analysis AI. "
             "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
-            f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {handedness}, Dominant eye is {dominant_eye}, "
-            f"Training goals is {training_goals}, Distance from target is {distance} yards, "
-            f"Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
-            f"Ammunition is {firearm_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
+            #f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {handedness}, Dominant eye is {dominant_eye}, "
+            #f"Training goals is {training_goals}, Distance from target is {distance} yards, "
+            #f"Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
+            #f"Ammunition is {firearm_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
+            #test
+"The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
+            #end test
             "Provide shot group pattern, shot vertical pattern, shot distribution overview, "
             "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
             "Respond ONLY in compact JSON format like: "
