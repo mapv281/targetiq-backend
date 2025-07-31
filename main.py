@@ -90,7 +90,7 @@ async def upload_target(
         raise HTTPException(status_code=500, detail="An error occurred while processing the image.")
 
 #with inputs
-async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, shooter_handedness: str, shooter_dominant_eye: str, shooter_training_goals: str, shooter_distance: str, shooter_firearm_make: str, shooter_firearm_model: str, shooter_caliber: str, shooter_target_type: str, shooter_range_location: str) -> ScoreResult:
+async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, shooter_handedness: str, shooter_dominant_eye: str, shooter_training_goals: str, shooter_distance: int, shooter_firearm_make: str, shooter_firearm_model: str, shooter_caliber: str, shooter_target_type: str, shooter_range_location: str) -> ScoreResult:
     try:
         with open(image_path, "rb") as img_file:
             b64_img = base64.b64encode(img_file.read()).decode("utf-8")
