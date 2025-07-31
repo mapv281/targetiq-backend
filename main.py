@@ -100,7 +100,6 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
             f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {shooter_handedness}, Dominant eye is {shooter_dominant_eye}, "
             f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance}, "
-            #f"Training goals is {shooter_training_goals}, Distance from target is 7 yards, "
             f"Firearm make is {shooter_firearm_make}, Firearm model is {shooter_firearm_model}, "
             f"Ammunition is {shooter_caliber}, Target type is {shooter_target_type}, Target Shooting Range Location is {shooter_range_location}. "
             #test
@@ -132,7 +131,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         #import json
         #data = json.loads(content)
         import json
-        #from pydantic import ValidationError
+        from pydantic import ValidationError
         try:
             content = response["choices"][0]["message"]["content"]
             logging.info(f"OpenAI Response: {content}") 
@@ -165,24 +164,28 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             logging.error(f"JSON parsing failed MAPV281: {json_err}")
             logging.error(f"Raw content: {content}")
             logging.error(f"Raw response: {response}")
+            logging.error(f"Raw result: {result}")
             raise HTTPException(status_code=500, detail="OpenAI returned invalid JSON Format MAPV281_2.")
         
         except TypeError as type_err:
             logging.error(f"Type mismatch in JSON -> ScoreResult: {type_err}")
             logging.error(f"Raw content: {content}")
             logging.error(f"Raw response: {response}")
+            logging.error(f"Raw result: {result}")
             raise HTTPException(status_code=500, detail="Data type mismatch in OpenAI response MAPV281_3.")
 
-    #except ValidationError as ve:
-        #logging.error(f"Pydantic validation error Scott Mosher: {ve}")
-        #logging.error(f"Raw content: {content}")
-        #logging.error(f"Raw response: {response}")
-        #raise HTTPException(status_code=500, detail=f"OpenAI response failed schema validation: {ve}")
-        
+    except ValidationError as ve:
+        logging.error(f"Pydantic validation error Scott Mosher: {ve}")
+        logging.error(f"Raw content: {content}")
+        logging.error(f"Raw response: {response}")
+        logging.error(f"Raw result: {result}")
+        raise HTTPException(status_code=500, detail=f"OpenAI response failed schema validation: {ve}")
+
     except Exception as e:
         logging.error(f"OpenAI Vision processing failed: {str(e)}")
         logging.error(f"Raw content: {content}")
         logging.error(f"Raw response: {response}")
+        logging.error(f"Raw result: {result}")
         if hasattr(e, 'response') and hasattr(e.response, 'text'):
             logging.error(f"OpenAI API response: {e.response.text}")
         raise HTTPException(status_code=500, detail=f"OpenAI Vision processing failed: {str(e)}")
