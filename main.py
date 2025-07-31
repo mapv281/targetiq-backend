@@ -1,6 +1,6 @@
 # 📦 FastAPI backend - Bullet Hole Detection using OpenAI Vision (Improved with Error Logging)
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, Form, UploadFile, File, HTTPException
 #from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -62,17 +62,17 @@ class ScoreResult(BaseModel):
 #async def upload_target(file: UploadFile = File(...)):
 async def upload_target(
         file: UploadFile = File(...),
-        first_name: str = "Mauricio",
-        last_name: str = "Patino",
-        handedness: str = "Left-handed",
-        dominant_eye: str = "Left Eye",
-        training_goals: str = "Self-Defense",
-        distance: str = "7 Yards",
-        firearm_make: str = "Glock",
-        firearm_model: str = "34 Gen4",
-        firearm_caliber: str = "9mm Luger",
-        target_type: str = "B-3 Orange",
-        location: str = "Indoor Range"
+        first_name: str = Form(...), #"Mauricio",
+        last_name: str = Form(...), #"Patino",
+        handedness: str = Form(...), #"Left-handed",
+        dominant_eye: str = Form(...), #"Left Eye",
+        training_goals: str = Form(...), #"Self-Defense",
+        distance: str = Form(...), #"7 Yards",
+        firearm_make: str = Form(...), #"Glock",
+        firearm_model: str = Form(...), #"34 Gen4",
+        firearm_caliber: str = Form(...), #"9mm Luger",
+        target_type: str = Form(...), #"B-3 Orange",
+        location: str = Form(...), #"Indoor Range"
 ):
     try:
         file_id = str(uuid.uuid4())
