@@ -75,7 +75,7 @@ async def upload_target(
         #location: str = Form(...), #"Indoor Range"
 
         file: UploadFile = File(...),
-        first_name: str = Form(...),
+        first_name: str = "Mauricio",
         last_name: str = "Patino",
         handedness: str = "Left-handed",
         dominant_eye: str = "Left Eye",
