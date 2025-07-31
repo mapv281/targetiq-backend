@@ -91,14 +91,12 @@ async def upload_target(
         file_id = str(uuid.uuid4())
         target_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpeg")
 
-        stringDistance = f"{distance} yards"
-
         with open(target_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
         # result = await detect_bullet_holes_with_openai(target_path)
         #with inputs
-        result = await detect_bullet_holes_with_openai(target_path, shooter_name = f"{first_name} {last_name}", shooter_handedness = handedness, shooter_dominant_eye = dominant_eye, shooter_training_goals = training_goals, shooter_distance = stringDistance, shooter_firearm_make = firearm_make, shooter_firearm_model = firearm_model, shooter_caliber = firearm_caliber, shooter_target_type = target_type, shooter_range_location = location)
+        result = await detect_bullet_holes_with_openai(target_path, shooter_name = f"{first_name} {last_name}", shooter_handedness = handedness, shooter_dominant_eye = dominant_eye, shooter_training_goals = training_goals, shooter_distance = f"{distance} yards", shooter_firearm_make = firearm_make, shooter_firearm_model = firearm_model, shooter_caliber = firearm_caliber, shooter_target_type = target_type, shooter_range_location = location)
         return result
     except Exception as e:
         logging.exception("Error occurred while processing the image")
