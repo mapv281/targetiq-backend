@@ -42,7 +42,7 @@ class ScoreResult(BaseModel):
     shooter_target_type: str
     shooter_firearm_make: str
     shooter_firearm_model: str
-    shooter_distance: str
+    shooter_distance: int
     shooter_range_location: str
     #analysis results
     shot_group_pattern: str
