@@ -108,7 +108,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
             #f"Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
             #f"Ammunition is {firearm_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
             #test
-"The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
+            "The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
             #end test
             "Provide shot group pattern, shot vertical pattern, shot distribution overview, "
             "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
@@ -136,6 +136,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
         #import json
         #data = json.loads(content)
         import json
+        from pydantic import ValidationError
         try:
             content = response["choices"][0]["message"]["content"]
             logging.info(f"OpenAI Response: {content}") 
@@ -146,22 +147,44 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
             #missing_keys = expected_keys - data.keys()
             #if missing_keys:
                 #logging.warning(f"Missing keys in response: {missing_keys}")
+            
+            # Optional: Log unexpected or missing keys
+            expected_fields = set(ScoreResult.model_fields.keys())
+            actual_fields = set(data.keys())
+            missing = expected_fields - actual_fields
+            extra = actual_fields - expected_fields
 
-            return ScoreResult(**data)
+            if missing:
+                logging.warning(f"Missing expected fields: {missing}")
+            if extra:
+                logging.warning(f"Unexpected fields returned by OpenAI: {extra}")
+
+            #return ScoreResult(**data)
+            result = ScoreResult(**data)
+            return result
 
             #data = json.loads(content).get("html_response", "")
             #return ScoreResult(html_response=data)
         except json.JSONDecodeError as json_err:
             logging.error(f"JSON parsing failed MAPV281: {json_err}")
             logging.error(f"Raw content: {content}")
+            logging.error(f"Raw response: {response}")
             raise HTTPException(status_code=500, detail="OpenAI returned invalid JSON Format MAPV281_2.")
         
         except TypeError as type_err:
             logging.error(f"Type mismatch in JSON -> ScoreResult: {type_err}")
+            logging.error(f"Raw content: {content}")
+            logging.error(f"Raw response: {response}")
             raise HTTPException(status_code=500, detail="Data type mismatch in OpenAI response MAPV281_3.")
-            
+
+    except ValidationError as ve:
+        logging.error(f"Pydantic validation error: {ve}")
+        raise HTTPException(status_code=500, detail=f"OpenAI response failed schema validation: {ve}")
+        
     except Exception as e:
         logging.error(f"OpenAI Vision processing failed: {str(e)}")
+        logging.error(f"Raw content: {content}")
+        logging.error(f"Raw response: {response}")
         if hasattr(e, 'response') and hasattr(e.response, 'text'):
             logging.error(f"OpenAI API response: {e.response.text}")
         raise HTTPException(status_code=500, detail=f"OpenAI Vision processing failed: {str(e)}")
