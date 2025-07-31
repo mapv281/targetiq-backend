@@ -45,7 +45,7 @@ class ScoreResult(BaseModel):
     shooter_distance: str
     shooter_location: str
     #analysis results
-    total_shots: int
+    #total_shots: int
     #x_ring: int
     #ten_ring: int
     #nine_ring: int
@@ -106,10 +106,10 @@ async def detect_bullet_holes_with_openai(image_path: str, first_name: str, last
             f"Training goals is {training_goals}, Distance from target is {distance} yards, "
             f"Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
             f"Ammunition is {firearm_caliber}, Target type is {target_type}, Location is {location}. "
-            "Provide total shots, shot group pattern, shot vertical pattern, shot distribution overview, "
+            "Provide shot group pattern, shot vertical pattern, shot distribution overview, "
             "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
             "Respond ONLY in compact JSON format like: "
-            "{\"total_shots\": 10, \"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
+            "{\"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
             "\"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
             "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, "
             "\"shooter_target_type\": text, \"shooter_name\": text, \"shooter_dominant_eye\": text, "
