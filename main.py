@@ -138,6 +138,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         import json
         
         try:
+            errorResult = prompt
             content = response["choices"][0]["message"]["content"]
             logging.info(f"OpenAI Response: {content}") 
             data = json.loads(content)
@@ -161,7 +162,6 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
 
             #return ScoreResult(**data)
             result = ScoreResult(**data)
-            errorResult = prompt
             return result
 
             #data = json.loads(content).get("html_response", "")
@@ -183,8 +183,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
     except ValidationError as ve:
         logging.error(f"Pydantic validation error Scott Mosher: {ve}")
         logging.error(repr(ve.errors()[0]['type']))
-        logging.error(f"Raw content: {content}")
-        logging.error(f"Raw response: {response}")
+        #logging.error(f"Raw content: {content}")
+        #logging.error(f"Raw response: {response}")
         logging.error(f"Raw result: {errorResult}")
         raise HTTPException(status_code=500, detail=f"OpenAI response failed schema validation: {ve}")
 
