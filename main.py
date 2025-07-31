@@ -100,21 +100,21 @@ async def detect_bullet_holes_with_openai(image_path: str, first_name: str, last
             b64_img = base64.b64encode(img_file.read()).decode("utf-8")
 
         prompt = (
-            "You are an expert firearms instructor and target analysis AI. "
-            "You are given an image of a paper shooting target along with the shooter's profile. "
+            f"You are an expert firearms instructor and target analysis AI. "
+            f"You are given an image of a paper shooting target along with the shooter's profile. "
             f"Shooter's name is {first_name} {last_name}, Handedness is {handedness}, Dominant eye is {dominant_eye}, "
             f"Training goals is {training_goals}, Distance from target is {distance} yards, "
             f"Firearm make is {firearm_make}, Firearm model is {firearm_model}, "
-            f"Ammunition is {firearm_caliber}, Target type is {target_type}, Location is {location}. "
-            "Provide shot group pattern, shot vertical pattern, shot distribution overview, "
-            "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
+            f"Ammunition is {firearm_caliber}, Target type is {target_type}, Target Shooting Range Location is {location}. "
+            f"Provide shot group pattern, shot vertical pattern, shot distribution overview, "
+            f"coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
             "Respond ONLY in compact JSON format like: "
-            "{\"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
-            "\"coaching_analysis\": [\"tip1\", \"tip2\", \"tip3\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
-            "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, "
-            "\"shooter_target_type\": text, \"shooter_name\": text, \"shooter_dominant_eye\": text, "
-            "\"training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, "
-            "\"shooter_location\": text, \"recommendations\": text, \"corrective_drills\": text}"
+            '{"shot_group_pattern": text, "shot_vertical_pattern": text, "shot_distribution_overview": text, '
+            '"coaching_analysis": ["tip1", "tip2", "tip3"], "areas_of_improvement": ["tip1"], "suggestions": ["tip1"], '
+            '"summary": text, "shooter_handedness": text, "shooter_distance": text, "shooter_caliber": text, '
+            '"shooter_target_type": text, "shooter_name": text, "shooter_dominant_eye": text, '
+            '"training_goals": text, "shooter_firearm_make": text, "shooter_firearm_model": text, '
+            '"shooter_location": text, "recommendations": text, "corrective_drills": text}'
         )
 
         response = openai.ChatCompletion.create(
