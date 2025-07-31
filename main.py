@@ -79,7 +79,7 @@ async def upload_target(
         last_name: str = Form(...),
         handedness: str = Form(...),
         dominant_eye: str = Form(...),
-        distance: int = Form(...),
+        distance: int = 7, # Form(...),
         location: str = Form(...),
         training_goals: str = Form(...),
         target_type: str = Form(...),
