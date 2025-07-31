@@ -113,7 +113,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             "Respond ONLY in compact JSON format like: "
             "{\"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
             "\"coaching_analysis\": [\"tip1\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
-            "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": text, \"shooter_caliber\": text, "
+            "\"summary\": text, \"shooter_handedness\": text, \"shooter_distance\": 1, \"shooter_caliber\": text, "
             "\"shooter_target_type\": text, \"shooter_name\": text, \"shooter_dominant_eye\": text, "
             "\"shooter_training_goals\": text, \"shooter_firearm_make\": text, \"shooter_firearm_model\": text, "
             "\"shooter_range_location\": text, \"recommendations\": text, \"corrective_drills\": text}"
@@ -161,7 +161,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
 
             #return ScoreResult(**data)
             result = ScoreResult(**data)
-            errorResult = result
+            errorResult = prompt
             return result
 
             #data = json.loads(content).get("html_response", "")
