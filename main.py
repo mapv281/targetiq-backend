@@ -142,10 +142,10 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
             data = json.loads(content)
 
             # Validate keys required by ScoreResult (optional)
-            expected_keys = set(ScoreResult.model_fields.keys())
-            missing_keys = expected_keys - data.keys()
-            if missing_keys:
-                logging.warning(f"Missing keys in response: {missing_keys}")
+            #expected_keys = set(ScoreResult.model_fields.keys())
+            #missing_keys = expected_keys - data.keys()
+            #if missing_keys:
+                #logging.warning(f"Missing keys in response: {missing_keys}")
 
             return ScoreResult(**data)
 
