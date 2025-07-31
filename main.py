@@ -132,13 +132,21 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
             #max_tokens=500
         )
 
-        content = response["choices"][0]["message"]["content"]
-        logging.info(f"OpenAI Response: {content}")  # ADD THIS LINE
+        
         #import json
         #data = json.loads(content)
         import json
         try:
+            content = response["choices"][0]["message"]["content"]
+            logging.info(f"OpenAI Response: {content}") 
             data = json.loads(content)
+
+            # Validate keys required by ScoreResult (optional)
+            expected_keys = set(ScoreResult.model_fields.keys())
+            missing_keys = expected_keys - data.keys()
+            if missing_keys:
+                logging.warning(f"Missing keys in response: {missing_keys}")
+
             return ScoreResult(**data)
 
             #data = json.loads(content).get("html_response", "")
@@ -146,7 +154,11 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, ha
         except json.JSONDecodeError as json_err:
             logging.error(f"JSON parsing failed MAPV281: {json_err}")
             logging.error(f"Raw content: {content}")
-            raise HTTPException(status_code=500, detail="Failed to parse OpenAI response as JSON MAPV281_2.")
+            raise HTTPException(status_code=500, detail="OpenAI returned invalid JSON Format MAPV281_2.")
+        
+        except TypeError as type_err:
+            logging.error(f"Type mismatch in JSON -> ScoreResult: {type_err}")
+            raise HTTPException(status_code=500, detail="Data type mismatch in OpenAI response MAPV281_3.")
             
     except Exception as e:
         logging.error(f"OpenAI Vision processing failed: {str(e)}")
