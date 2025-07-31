@@ -76,16 +76,16 @@ async def upload_target(
 
         file: UploadFile = File(...),
         first_name: str = Form(...),
-        last_name: str = Form(...),
-        handedness: str = Form(...),
-        dominant_eye: str = Form(...),
-        distance: int = 7, # Form(...),
-        location: str = Form(...),
-        training_goals: str = Form(...),
-        target_type: str = Form(...),
-        firearm_make: str = Form(...),
-        firearm_model: str = Form(...),
-        firearm_caliber: str = Form(...)
+        last_name: str = "Patino",
+        handedness: str = "Left-handed",
+        dominant_eye: str = "Left Eye",
+        distance: int = 7,
+        location: str = "Indoor Range",
+        training_goals: str = "Self-Defense",
+        target_type: str = "B-3 Orange",
+        firearm_make: str = "Glock",
+        firearm_model: str = "34 Gen4",
+        firearm_caliber: str = "9mm Luger"
 ):
     try:
         file_id = str(uuid.uuid4())
