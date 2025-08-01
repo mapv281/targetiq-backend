@@ -64,15 +64,15 @@ async def upload_target(
         file: UploadFile = File(...),
         first_name: str = Form(...), #"Mauricio",
         last_name: str = Form(...), #"Patino",
-        handedness: str = "Left-handed",
-        dominant_eye: str = "Left Eye",
-        distance: str = str(25),
-        location: str = "Indoor Range",
-        training_goals: str = "Self-Defense",
-        target_type: str = "B-3 Orange",
-        firearm_make: str = "Glock",
-        firearm_model: str = "34 Gen4",
-        firearm_caliber: str = "9mm Luger"
+        handedness: str = Form(...), #"Left-handed",
+        dominant_eye: str = Form(...), #"Left Eye",
+        distance: str = Form(...), #str(25),
+        location: str = Form(...), #"Indoor Range",
+        training_goals: str = Form(...), #"Self-Defense",
+        target_type: str = Form(...), #"B-3 Orange",
+        firearm_make: str = Form(...), #"Glock",
+        firearm_model: str = Form(...), #"34 Gen4",
+        firearm_caliber: str = Form(...), #"9mm Luger"
 ):
     try:
         file_id = str(uuid.uuid4())
