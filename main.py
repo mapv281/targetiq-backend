@@ -122,8 +122,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         response = openai.ChatCompletion.create(
             #model="gpt-4.1",
             #model="gpt-4.1-nano", #best for low latency, most cost-effective
-            #model="gpt-4.1-mini", #Balanced for intelligence, speed, and cost
-            model = "o4-mini", #lighter, uses less tokens, faster
+            model="gpt-4.1-mini", #Balanced for intelligence, speed, and cost
+            #model = "o4-mini", #lighter, uses less tokens, faster
             messages=[
                 {"role": "user", "content": [
                     {"type": "text", "text": prompt},
