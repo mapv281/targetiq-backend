@@ -121,7 +121,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
 
         response = openai.ChatCompletion.create(
             #model="gpt-4.1",
-            model = "04-mini", #lighter, uses less tokens, faster
+            model = "o4-mini", #lighter, uses less tokens, faster
             messages=[
                 {"role": "user", "content": [
                     {"type": "text", "text": prompt},
