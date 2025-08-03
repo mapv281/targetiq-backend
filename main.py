@@ -99,7 +99,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             b64_img = base64.b64encode(img_file.read()).decode("utf-8")
 
         prompt = (
-            "You are an expert firearms instructor and target analysis AI. "
+            "You are an expert firearms instructor that provides NRA style coaching, and AI target analysis. "
             "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
             f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {shooter_handedness}, Dominant eye is {shooter_dominant_eye}, "
             f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance}, "
