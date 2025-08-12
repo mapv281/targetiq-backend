@@ -17,7 +17,8 @@ origins = [
     "http://localhost:3000",  # Your local frontend development server
     "https://targetiq-frontend-f2p3axuf1-mauricios-projects-1565b5ab.vercel.app",
     "https://targetiq-frontend.vercel.app",
-    "https://preview--target-coach-ai.lovable.app/*" #accept all pages
+    "https://preview--target-coach-ai.lovable.app/*", #accept all pages
+    "https://www.vantagetarget.com/*"
 ]
 
 app.add_middleware(
@@ -99,8 +100,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             b64_img = base64.b64encode(img_file.read()).decode("utf-8")
 
         prompt = (
-            "You are an expert firearms instructor that provides NRA style coaching, and AI target analysis. "
-            "You are given an image of a paper shooting target from uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
+            "You are an expert firearms instructor who provides NRA-style coaching and AI target analysis. "
+            "You are given an image of a paper shooting target from an uploaded image with information about the shooter's handedness, dominant eye, distance from target, firearm make, firearm model, firearm caliber, target type, and whether the shooting range is indoor or outdoor. "
             f"The shooter's information is as follows: Shooter's name is {shooter_name}, Handedness is {shooter_handedness}, Dominant eye is {shooter_dominant_eye}, "
             f"Training goals is {shooter_training_goals}, Distance from target is {shooter_distance}, "
            #f"Training goals is {shooter_training_goals}, Distance from target is 7 yards, "
@@ -110,7 +111,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             #"The shooter's information is as follows: Shooter's name is Mauricio Patino, Handedness is left, Dominant eye is left, Training goals is self-defense,  Distance from target is 7 yards, Firearm make  Glock, Firearm model is 34 Gen4, Firearm ammunition is 9mm Luger, Target type is B-3 Orange, Location is Indoor Range. "
             #end test
             "Provide shot group pattern, shot vertical pattern, shot distribution overview, "
-            "coaching analysis, corrective drills, analysis, recommendations, suggestions, and areas of improvement. "
+            "coaching analysis, corrective drills, analysis, recommendations (with suggestions on searching online videos for these recommendations), suggestions, and areas of improvement. "
             "Respond ONLY in compact JSON format like: "
             "{\"shot_group_pattern\": text, \"shot_vertical_pattern\": text,\"shot_distribution_overview\":  text, "
             "\"coaching_analysis\": [\"tip1\"], \"areas_of_improvement\": [\"tip1\"], \"suggestions\": [\"tip1\"], "
