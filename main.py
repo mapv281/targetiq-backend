@@ -94,7 +94,7 @@ app.add_middleware(
 )
 
 UPLOAD_DIR = "uploaded_targets"
-#os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 STATIC_DIR = "static"
 OVERLAY_DIR = os.path.join(STATIC_DIR, "overlays")
 os.makedirs(OVERLAY_DIR, exist_ok=True)
