@@ -181,11 +181,11 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
 
         prompt = (
     "You are an expert firearms instructor who provides NRA-style coaching and AI target analysis. "
-    "You are given an image of a paper shooting target plus shooter context. "
+    "You are given an image of a paper shooting target plus shooter context. If the chosen Target Type is Silhouette, the look for vital zones like Head, Chest, or Center Mass and provide analysis on those specific target areas. Otherwise, look for Target Types of Bullseye or Precision Target and provide analysis accordingly."
     f"Shooter's name: {shooter_name}. Handedness: {shooter_handedness}. Dominant eye: {shooter_dominant_eye}. "
     f"Training goals: {shooter_training_goals}. Distance: {shooter_distance}. "
     f"Firearm: {shooter_firearm_make} {shooter_firearm_model}. Ammunition: {shooter_caliber}. "
-    f"Target type: {shooter_target_type}. Range: {shooter_range_location}. "
+    f"Target Type: {shooter_target_type}. Range: {shooter_range_location}. "
     "First, identify each bullet hole center on the target and return them as normalized coordinates, "
     "with (0,0) at the top-left of the image and (1,1) at the bottom-right. "
     "Respond with compact JSON ONLY, using exactly these keys and structure:\n"
