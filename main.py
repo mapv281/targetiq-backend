@@ -189,7 +189,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
     f"Target Type: {shooter_target_type}. Range: {shooter_range_location}. "
     "First, identify each bullet hole center on the target and return them as normalized coordinates, "
     "with (0,0) at the top-left of the image and (1,1) at the bottom-right. "
-    "Apply this analysis and the coaching recommendations to these shooting drills: Ball & Dummy Drill, Dry Fire Practice, Wall Drill, One-Hole Drill, Dot Drill, Bill Drill, El Presidente, Mozambique Drill, Failure to Stop Drill, Box Drill, Accelerator Drill, Dot Torture Drill, 5x5 Drill, Bill Wilson 5x5 Classifier relevant to the analysis results. "
+    "Apply this analysis and the coaching recommendations relevant to these shooting drills: Ball & Dummy Drill, Dry Fire Practice, Wall Drill, One-Hole Drill, Dot Drill, Bill Drill, El Presidente, Mozambique Drill, Failure to Stop Drill, Box Drill, Accelerator Drill, Dot Torture Drill, 5x5 Drill, Bill Wilson 5x5 Classifier."
     "Respond with compact JSON ONLY, using exactly these keys and structure:\n"
     "{"
     "\"shot_group_pattern\": text, "
@@ -219,7 +219,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         response = openai.ChatCompletion.create(
             #model="gpt-4.1",
             #model="gpt-4.1-nano", #best for low latency, most cost-effective
-            model="gpt-4.1-mini", #Balanced for intelligence, speed, and cost
+            #model="gpt-4.1-mini", #Balanced for intelligence, speed, and cost
+            model="gpt-5-mini",
             #model = "o4-mini", #lighter, uses less tokens, faster
             messages=[
                 {"role": "user", "content": [
