@@ -180,8 +180,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             b64_img = base64.b64encode(img_file.read()).decode("utf-8")
 
         prompt = (
-    "You are an expert firearms instructor who provides NRA-style coaching and AI target analysis. "
-    "You are given an image of a paper shooting target plus shooter context. If the chosen Target Type is Silhouette, the look for vital zones like Head, Chest, or Center Mass and provide analysis on those specific target areas. Otherwise, look for Target Types of Bullseye or Precision Target and provide analysis accordingly."
+    "You are an expert firearms instructor who provides NRA, USPSA, IPSC, IDPA style coaching in precision, tactical, self-defense, and personalized AI target analysis depending on the inputs provided. Provide coaching style depending on the shooter's training goals input."
+    "You are given an image of a paper shooting (USPSA, IPSC, IDPA, NRA style targets) or steel targets plus shooter context. If the chosen Target Type is Silhouette, the look for vital zones like Head, Chest, or Center Mass and provide analysis on those specific target areas. Otherwise, look for Target Types of Bullseye or Precision Target and provide analysis accordingly."
     "Apply analysis and coaching to these specific shooter details: "
     f"Shooter's name: {shooter_name}. Handedness: {shooter_handedness}. Dominant eye: {shooter_dominant_eye}. "
     f"Training goals: {shooter_training_goals}. Distance: {shooter_distance}. "
