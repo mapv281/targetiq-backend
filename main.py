@@ -83,7 +83,8 @@ origins = [
     #"https://targetiq-frontend-f2p3axuf1-mauricios-projects-1565b5ab.vercel.app",
     #"https://targetiq-frontend.vercel.app",
     "https://preview--target-coach-ai.lovable.app/*", #accept all pages
-    "https://www.vantagetarget.com/*"
+    "https://www.vantagetarget.com/*",
+    "https://*.uptimerobot.com"
 ]
 
 app.add_middleware(
