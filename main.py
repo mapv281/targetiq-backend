@@ -183,6 +183,16 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         prompt = (
     "You are an expert firearms instructor who provides NRA, USPSA, IPSC, IDPA style coaching in precision, tactical, self-defense, and personalized AI target analysis depending on the inputs provided. Provide coaching style depending on the shooter's training goals input."
     "You are given an image of a paper shooting (USPSA, IPSC, IDPA, NRA style targets) or steel targets plus shooter context. If the chosen Target Type is Silhouette, the look for vital zones like Head, Chest, or Center Mass and provide analysis on those specific target areas. Otherwise, look for Target Types of Bullseye or Precision Target and provide analysis accordingly."
+    
+    "INTEGRATED ADJUSTMENT SUMMARY (apply these emphases in analysis & coaching):"
+f"- Grip pressure & finger placement: many shooters grip too hard or inconsistently. Recommend a moderate, repeatable grip pressure and consistent finger placement (especially trigger finger placement) to stabilize recoil and improve follow-through."
+f"- Trigger control / trigger pull: emphasize a smooth, steady trigger press (not slapping or jerking). Coach exact finger placement on the pad and uniform press cadence to minimize muzzle movement."
+f"- Wrist / forearm alignment: ensure a stable wrist/arm alignment so recoil is absorbed in a straight line; avoid letting the wrist collapse. Suggest small angle adjustments to reduce muzzle flip."
+f"- Follow-through & sight maintenance: maintain sight alignment and grip after the shot (hold through the recoil) to reveal errors and improve consistency."
+f"- Mindset / simplification: avoid overcomplicating technique—focus on one core change at a time (build consistency) and practice drills that reinforce the chosen adjustment."
+
+    
+    
     "Apply analysis and coaching to these specific shooter details: "
     f"Shooter's name: {shooter_name}. Handedness: {shooter_handedness}. Dominant eye: {shooter_dominant_eye}. "
     f"Training goals: {shooter_training_goals}. Distance: {shooter_distance}. "
