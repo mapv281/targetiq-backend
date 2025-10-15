@@ -4,6 +4,7 @@ from fastapi import FastAPI, Form, UploadFile, File, HTTPException
 #from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
+from typing import Any, Dict, List
 import shutil
 import uuid
 import os
@@ -105,6 +106,24 @@ os.makedirs(OVERLAY_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environment variables
+
+
+class ComparisonRequest(BaseModel):
+    current_report: dict
+    previous_report: dict
+    shooter_context: Optional[dict] = None
+
+class ComparisonResponse(BaseModel):
+    improved_overall: bool | None = None
+    accuracy_change_mm: float | None = None
+    grouping_change_mm: float | None = None
+    shot_group_pattern_change: str | None = None
+    vertical_pattern_change: str | None = None
+    distribution_change: str | None = None
+    key_differences: list[str] | None = None
+    coaching_recommendations: list[str] | None = None
+    drill_suggestions: list[str] | None = None
+    summary: str | None = None
 
 class Shot(BaseModel):
     # normalized coordinates in [0,1], (0,0) top-left of the image
@@ -351,3 +370,95 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         if hasattr(e, 'response') and hasattr(e.response, 'text'):
             logging.error(f"OpenAI API response: {e.response.text}")
         raise HTTPException(status_code=500, detail=f"OpenAI Vision processing failed: {str(e)}")
+
+
+@app.post("/compare")
+async def compare_reports(payload: ComparisonRequest):
+    """
+    Compare current and previous target analysis using OpenAI (GPT-5 mini).
+    Expects `current_report` and `previous_report` objects as produced by your app.
+    Returns a structured JSON with key differences and recommendations.
+    """
+    try:
+        # Prepare prompt
+        system_prompt = (
+            "You are an expert firearms instructor who provides NRA, USPSA, IPSC, IDPA style coaching "
+            "in precision, tactical, self-defense, and personalized AI target analysis. "
+            "Compare two handgun shooting reports (current vs previous). "
+            "Be concise, technical, and useful for coaching."
+        )
+
+        # We pass raw reports; the model will parse fields
+        cr = payload.current_report
+        pr = payload.previous_report
+        ctx = payload.shooter_context or {}
+
+        # Build a tight JSON-only output spec so the frontend can parse reliably.
+        json_contract = (
+            "Respond with compact JSON ONLY, using exactly these keys: "
+            "{"
+            "\"improved_overall\": boolean, "
+            "\"accuracy_change_mm\": number, "
+            "\"grouping_change_mm\": number, "
+            "\"shot_group_pattern_change\": string, "
+            "\"vertical_pattern_change\": string, "
+            "\"distribution_change\": string, "
+            "\"key_differences\": [string], "
+            "\"coaching_recommendations\": [string], "
+            "\"drill_suggestions\": [string], "
+            "\"summary\": string"
+            "}"
+        )
+
+        user_prompt = (
+            "Compare these reports. Use any provided shot centers, group radius, distance from center, hit zones, "
+            "and narrative analyses. Evaluate accuracy, grouping, vertical/horizontal bias, consistency, and trends.\n\n"
+            f"Shooter Context: {json.dumps(ctx)}\n\n"
+            f"CURRENT_REPORT: {json.dumps(cr)}\n\n"
+            f"PREVIOUS_REPORT: {json.dumps(pr)}\n\n"
+            + json_contract
+        )
+
+        # Configure OpenAI legacy SDK usage already present in this codebase
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Missing OPENAI_API_KEY environment variable")
+        openai.api_key = api_key
+
+        completion = openai.ChatCompletion.create(
+            model="gpt-5-mini",
+            temperature=0.2,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format={ "type": "json_object" }
+        )
+
+        content = completion["choices"][0]["message"]["content"]
+        # Ensure valid JSON
+        try:
+            parsed = json.loads(content)
+        except Exception:
+            # If the model did not strictly return JSON, wrap as summary-only
+            parsed = {
+                "improved_overall": None,
+                "accuracy_change_mm": None,
+                "grouping_change_mm": None,
+                "shot_group_pattern_change": None,
+                "vertical_pattern_change": None,
+                "distribution_change": None,
+                "key_differences": [],
+                "coaching_recommendations": [],
+                "drill_suggestions": [],
+                "summary": content.strip(),
+            }
+
+        return parsed
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception("OpenAI comparison failed")
+        raise HTTPException(status_code=500, detail=f"OpenAI comparison failed: {str(e)}")
+
