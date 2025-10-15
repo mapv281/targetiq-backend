@@ -15,6 +15,8 @@ from fastapi.staticfiles import StaticFiles
 import numpy as np
 import cv2
 from typing import Optional
+import json
+
 
 #heatmap rendering helpers
 def _normalized_to_pixels(shots: list[dict], w: int, h: int) -> list[tuple[int,int,float]]:
