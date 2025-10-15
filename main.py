@@ -451,7 +451,7 @@ async def compare_reports(payload: ComparisonRequest):
 
         completion = openai.ChatCompletion.create(
             model="gpt-5-mini",
-            temperature=0.2,
+            temperature=1,
             #max_tokens=500,  # hard cap output size
             max_completion_tokens=600,
             messages=[
