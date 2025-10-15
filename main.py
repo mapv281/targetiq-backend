@@ -157,7 +157,10 @@ class ScoreResult(BaseModel):
     shots: list[Shot] = []                # normalized shot list
     heatmap_image_b64: Optional[str] = None   # PNG, base64 (no prefix)
     overlay_image_b64: Optional[str] = None   # PNG, base64 (no prefix)   
-    
+
+@app.get("/ping")
+def ping():
+    return {"status": "ok"} 
 
 @app.post("/upload", response_model=ScoreResult)
 #async def upload_target(file: UploadFile = File()):
