@@ -428,7 +428,8 @@ async def compare_reports(payload: ComparisonRequest):
         openai.api_key = api_key
 
         completion = openai.ChatCompletion.create(
-            model="gpt-5-mini",
+            #model="gpt-5-mini",
+            model="gpt-5",
             temperature=0.2,
             messages=[
                 {"role": "system", "content": system_prompt},
