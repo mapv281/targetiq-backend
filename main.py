@@ -234,7 +234,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
   "* Support-hand grip pressure tests → identify imbalance and correct low-left / low-right errors."
     
     
-    "Apply analysis and coaching to these specific shooter details: "
+    "Apply analysis, coaching, and recommendations to these specific shooter details: "
     f"Shooter's name: {shooter_name}. Handedness: {shooter_handedness}. Dominant eye: {shooter_dominant_eye}. "
     f"Training goals: {shooter_training_goals}. Distance: {shooter_distance}. "
     f"Firearm: {shooter_firearm_make} {shooter_firearm_model}. Ammunition: {shooter_caliber}. "
