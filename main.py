@@ -490,3 +490,236 @@ async def compare_reports(payload: ComparisonRequest):
     except Exception as e:
         logging.exception("OpenAI comparison failed")
         raise HTTPException(status_code=500, detail=f"OpenAI comparison failed: {str(e)}")
+
+# -----------------------------------------------------------------------------
+# Shooter Performance Profile
+# Added for VantageTarget longitudinal progress tracking.
+# Supabase remains the system of record; the frontend sends the user's recent
+# analyzed sessions to this endpoint so the API never needs the Supabase service key.
+# -----------------------------------------------------------------------------
+from datetime import datetime
+from statistics import mean
+
+PROFILE_MODEL = os.getenv("OPENAI_PROFILE_MODEL", COMPARE_MODEL)
+
+class PerformanceSession(BaseModel):
+    id: Optional[str] = None
+    analyzed_at: Optional[str] = None
+    accuracy_score: Optional[float] = None
+    grouping_mm: Optional[float] = None
+    accuracy_mm: Optional[float] = None
+    shot_count: Optional[int] = None
+    horizontal_bias: Optional[float] = None
+    vertical_bias: Optional[float] = None
+    shot_group_pattern: Optional[str] = None
+    target_distance: Optional[float] = None
+    target_type: Optional[str] = None
+    firearm_label: Optional[str] = None
+
+class PerformanceProfileRequest(BaseModel):
+    shooter_name: Optional[str] = None
+    training_goal: Optional[str] = None
+    sessions: list[PerformanceSession] = Field(default_factory=list)
+
+class PerformanceProfileResponse(BaseModel):
+    sessions_analyzed: int
+    current_streak: int
+    accuracy_current: Optional[float] = None
+    accuracy_change_pct: Optional[float] = None
+    grouping_current_mm: Optional[float] = None
+    grouping_change_pct: Optional[float] = None
+    best_grouping_mm: Optional[float] = None
+    best_accuracy_score: Optional[float] = None
+    consistency_score: Optional[float] = None
+    dominant_pattern: Optional[str] = None
+    progress_status: str
+    next_goal: str
+    highlights: list[str] = Field(default_factory=list)
+    ai_insight: str
+
+
+def _pct_change(current: Optional[float], previous: Optional[float]) -> Optional[float]:
+    if current is None or previous in (None, 0):
+        return None
+    return round(((current - previous) / abs(previous)) * 100.0, 1)
+
+
+def _avg(values: list[Optional[float]]) -> Optional[float]:
+    clean = [float(v) for v in values if v is not None]
+    return round(mean(clean), 2) if clean else None
+
+
+def _calculate_streak(sessions: list[PerformanceSession]) -> int:
+    """Count consecutive calendar days represented by the newest sessions."""
+    dates = []
+    for s in sessions:
+        if not s.analyzed_at:
+            continue
+        try:
+            dates.append(datetime.fromisoformat(s.analyzed_at.replace("Z", "+00:00")).date())
+        except ValueError:
+            continue
+    unique_dates = sorted(set(dates), reverse=True)
+    if not unique_dates:
+        return 0
+    streak = 1
+    for i in range(1, len(unique_dates)):
+        if (unique_dates[i - 1] - unique_dates[i]).days == 1:
+            streak += 1
+        else:
+            break
+    return streak
+
+
+def _consistency_score(groupings: list[float]) -> Optional[float]:
+    """0-100 score based on coefficient of variation; higher = more consistent."""
+    if len(groupings) < 2:
+        return None
+    avg = float(np.mean(groupings))
+    if avg <= 0:
+        return None
+    cv = float(np.std(groupings)) / avg
+    return round(max(0.0, min(100.0, 100.0 * (1.0 - cv))), 1)
+
+
+@app.post("/performance-profile", response_model=PerformanceProfileResponse)
+async def build_performance_profile(payload: PerformanceProfileRequest):
+    """
+    Build a longitudinal Shooter Performance Profile from Supabase session history.
+    Send newest-first or oldest-first; the endpoint sorts ISO timestamps when present.
+    Recommended input: the most recent 25-50 completed analyses.
+    """
+    try:
+        sessions = list(payload.sessions or [])
+        if not sessions:
+            return PerformanceProfileResponse(
+                sessions_analyzed=0,
+                current_streak=0,
+                progress_status="Getting started",
+                next_goal="Analyze your first target to establish a baseline.",
+                highlights=[],
+                ai_insight="Your performance profile will become more useful as you analyze more targets."
+            )
+
+        # Sort oldest -> newest where valid timestamps exist; preserve supplied order otherwise.
+        if all(s.analyzed_at for s in sessions):
+            try:
+                sessions.sort(key=lambda s: datetime.fromisoformat(s.analyzed_at.replace("Z", "+00:00")))
+            except ValueError:
+                pass
+
+        recent = sessions[-5:]
+        prior = sessions[-10:-5]
+        current = sessions[-1]
+
+        recent_accuracy = _avg([s.accuracy_score for s in recent])
+        prior_accuracy = _avg([s.accuracy_score for s in prior])
+        accuracy_change = _pct_change(recent_accuracy, prior_accuracy)
+
+        recent_grouping = _avg([s.grouping_mm for s in recent])
+        prior_grouping = _avg([s.grouping_mm for s in prior])
+        # For grouping, smaller is better. Report positive percentage when group size improved.
+        raw_grouping_change = _pct_change(recent_grouping, prior_grouping)
+        grouping_improvement = round(-raw_grouping_change, 1) if raw_grouping_change is not None else None
+
+        grouping_values = [float(s.grouping_mm) for s in sessions if s.grouping_mm is not None and s.grouping_mm > 0]
+        accuracy_values = [float(s.accuracy_score) for s in sessions if s.accuracy_score is not None]
+        patterns = [s.shot_group_pattern.strip() for s in sessions if s.shot_group_pattern and s.shot_group_pattern.strip()]
+        dominant_pattern = max(set(patterns), key=patterns.count) if patterns else None
+
+        best_group = round(min(grouping_values), 2) if grouping_values else None
+        best_accuracy = round(max(accuracy_values), 2) if accuracy_values else None
+        consistency = _consistency_score(grouping_values[-10:])
+
+        positive_signals = sum([
+            accuracy_change is not None and accuracy_change > 2,
+            grouping_improvement is not None and grouping_improvement > 2,
+        ])
+        negative_signals = sum([
+            accuracy_change is not None and accuracy_change < -2,
+            grouping_improvement is not None and grouping_improvement < -2,
+        ])
+        if len(sessions) < 3:
+            progress_status = "Building baseline"
+        elif positive_signals > negative_signals:
+            progress_status = "Trending up"
+        elif negative_signals > positive_signals:
+            progress_status = "Needs focus"
+        else:
+            progress_status = "Holding steady"
+
+        highlights = []
+        if current.grouping_mm is not None and best_group is not None and abs(current.grouping_mm - best_group) < 0.001:
+            highlights.append("New personal best group")
+        if current.accuracy_score is not None and best_accuracy is not None and abs(current.accuracy_score - best_accuracy) < 0.001:
+            highlights.append("New personal best accuracy")
+        if grouping_improvement is not None and grouping_improvement > 0:
+            highlights.append(f"Average group improved {grouping_improvement}% vs. the previous 5 sessions")
+        if accuracy_change is not None and accuracy_change > 0:
+            highlights.append(f"Average accuracy improved {accuracy_change}% vs. the previous 5 sessions")
+
+        if best_group is not None:
+            next_goal_value = round(max(1.0, best_group * 0.95), 1)
+            next_goal = f"Try to set a new personal best below {next_goal_value} mm."
+        elif best_accuracy is not None:
+            next_goal = f"Try to beat your personal-best accuracy score of {best_accuracy}."
+        else:
+            next_goal = "Complete a few more analyzed sessions to unlock a personalized goal."
+
+        # Compact AI narrative. All statistics are calculated server-side so the model
+        # interprets trends rather than inventing measurements.
+        stats = {
+            "sessions_analyzed": len(sessions),
+            "recent_accuracy_avg": recent_accuracy,
+            "accuracy_change_pct": accuracy_change,
+            "recent_grouping_avg_mm": recent_grouping,
+            "grouping_improvement_pct": grouping_improvement,
+            "best_grouping_mm": best_group,
+            "best_accuracy_score": best_accuracy,
+            "consistency_score": consistency,
+            "dominant_pattern": dominant_pattern,
+            "progress_status": progress_status,
+            "training_goal": payload.training_goal,
+        }
+
+        ai_insight = "Keep logging sessions to reveal stronger performance trends."
+        if OPENAI_API_KEY and len(sessions) >= 2:
+            try:
+                profile_prompt = (
+                    "You are VantageTarget's encouraging performance coach. Interpret the supplied shooting "
+                    "performance statistics without inventing numbers. Write 2 concise sentences in plain English. "
+                    "Sentence 1 should celebrate or neutrally describe the most meaningful trend. Sentence 2 should "
+                    "give one simple, safety-conscious practice focus. Do not repeat every metric and do not use markdown.\n"
+                    f"Shooter: {payload.shooter_name or 'Shooter'}\n"
+                    f"Statistics: {json.dumps(stats, ensure_ascii=False)}"
+                )
+                ai_response = await client.responses.create(
+                    model=PROFILE_MODEL,
+                    reasoning={"effort": "low"},
+                    input=profile_prompt,
+                    max_output_tokens=180,
+                )
+                if ai_response.output_text:
+                    ai_insight = ai_response.output_text.strip()
+            except Exception as ai_err:
+                logging.warning(f"Performance profile AI insight failed; using fallback: {ai_err}")
+
+        return PerformanceProfileResponse(
+            sessions_analyzed=len(sessions),
+            current_streak=_calculate_streak(sessions),
+            accuracy_current=recent_accuracy,
+            accuracy_change_pct=accuracy_change,
+            grouping_current_mm=recent_grouping,
+            grouping_change_pct=grouping_improvement,
+            best_grouping_mm=best_group,
+            best_accuracy_score=best_accuracy,
+            consistency_score=consistency,
+            dominant_pattern=dominant_pattern,
+            progress_status=progress_status,
+            next_goal=next_goal,
+            highlights=highlights[:4],
+            ai_insight=ai_insight,
+        )
+    except Exception as e:
+        logging.exception("Performance profile generation failed")
+        raise HTTPException(status_code=500, detail=f"Performance profile generation failed: {str(e)}")
