@@ -3,11 +3,11 @@
 from fastapi import FastAPI, Form, UploadFile, File, HTTPException
 #from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, Field
 import shutil
 import uuid
 import os
-import openai
+from openai import AsyncOpenAI
 import base64
 import logging
 from fastapi.staticfiles import StaticFiles
@@ -105,7 +105,16 @@ os.makedirs(OVERLAY_DIR, exist_ok=True)
 # Serve static files (heatmaps)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-openai.api_key = os.getenv("OPENAI_API_KEY")  # Set this in your Render environment variables
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    logging.warning("OPENAI_API_KEY is not configured")
+
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+
+# Model configuration can be overridden in Render environment variables
+VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-5.6-terra")
+COMPARE_MODEL = os.getenv("OPENAI_COMPARE_MODEL", "gpt-5.6-luna")
 
 class ComparisonRequest(BaseModel):
     current_report: dict
@@ -126,9 +135,9 @@ class ComparisonResponse(BaseModel):
 
 class Shot(BaseModel):
     # normalized coordinates in [0,1], (0,0) top-left of the image
-    x: float
-    y: float
-    confidence: Optional[float] = None
+    x: float = Field(ge=0.0, le=1.0)
+    y: float = Field(ge=0.0, le=1.0)
+    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
 class ScoreResult(BaseModel):
     #shooter profile
@@ -154,7 +163,7 @@ class ScoreResult(BaseModel):
     corrective_drills: str
     #html_response: str
     # NEW: vision outputs
-    shots: list[Shot] = []                # normalized shot list
+    shots: list[Shot] = Field(default_factory=list)  # normalized shot list
     heatmap_image_b64: Optional[str] = None   # PNG, base64 (no prefix)
     overlay_image_b64: Optional[str] = None   # PNG, base64 (no prefix)   
 
@@ -204,7 +213,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
         prompt = (
     "You are an expert firearms instructor who provides NRA, USPSA, IPSC, IDPA style coaching in precision, tactical, self-defense, and personalized AI target analysis depending on the inputs provided. Provide personalized coaching style depending on the shooter's training goals input."
     "You are given an image of a paper shooting (USPSA, IPSC, IDPA, NRA style targets) or steel targets plus shooter context, do your best to detect target type from uploaded image. If the chosen Target Type is Silhouette, the look for vital zones like Head, Chest, or Center Mass and provide analysis on those specific target areas. Otherwise, look for Target Types of Bullseye or Precision Target and provide analysis accordingly."
-    
+
 "INTEGRATED ADJUSTMENT SUMMARY (apply these emphases in analysis & coaching):"
 "- Grip Pressure & Finger Placement:"
   "* Avoid gripping too hard with the strong hand; let the support hand provide consistent, stabilizing pressure."
@@ -232,8 +241,8 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
   "* One-Hole / Dot Drill → builds precision and consistency in grip & trigger."
   "* Bill Drill, El Presidente, Mozambique → integrate speed with accuracy once fundamentals are corrected."
   "* Support-hand grip pressure tests → identify imbalance and correct low-left / low-right errors."
-    
-    
+
+
     "Apply analysis, coaching, and recommendations to these specific shooter details: "
     f"Shooter's name: {shooter_name}. Handedness: {shooter_handedness}. Dominant eye: {shooter_dominant_eye}. "
     f"Training goals: {shooter_training_goals}. Distance: {shooter_distance}. "
@@ -268,34 +277,35 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
     "Rules: coordinates are floats in [0,1]; do not include any extra fields or markdown."
 )                
 
-        response = openai.ChatCompletion.create(
-            #model="gpt-4.1",
-            #model="gpt-4.1-nano", #best for low latency, most cost-effective
-            #model="gpt-4.1-mini", #Balanced for intelligence, speed, and cost
-            #model="gpt-5-mini",
-            model="gpt-5.4-mini",
-            #model = "o4-mini", #lighter, uses less tokens, faster
-            messages=[
-                {"role": "user", "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}
-                ]}
-            ]
-            #text_format="json_schema"
-            #max_tokens=500
-            #text_format=ScoreResult
+        response = await client.responses.create(
+            model=VISION_MODEL,
+            reasoning={"effort": "medium"},
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{b64_img}",
+                            "detail": "high",
+                        },
+                    ],
+                }
+            ],
+            text={"format": {"type": "json_object"}},
         )
 
-        
+
         #import json
         #data = json.loads(content)
         errorResult: str = "Init Error Result"
 
         import json
-        
+
         try:
             errorResult = prompt
-            content = response["choices"][0]["message"]["content"]
+            content = response.output_text
             logging.info(f"OpenAI Response: {content}") 
             data = json.loads(content)
 
@@ -303,7 +313,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             shots_list = data.get("shots", [])
             if not isinstance(shots_list, list):
                 shots_list = []
-            
+
             try:
                 heatmap_b64, overlay_b64 = _render_heatmap_overlay_b64(
                     image_path=image_path,
@@ -319,13 +329,13 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
                 data["heatmap_image_b64"] = None
                 data["overlay_image_b64"] = None           
             #end of heatmap
-            
+
             # Validate keys required by ScoreResult (optional)
             #expected_keys = set(ScoreResult.model_fields.keys())
             #missing_keys = expected_keys - data.keys()
             #if missing_keys:
                 #logging.warning(f"Missing keys in response: {missing_keys}")
-            
+
             # Optional: Log unexpected or missing keys
             expected_fields = set(ScoreResult.model_fields.keys())
             actual_fields = set(data.keys())
@@ -349,7 +359,7 @@ async def detect_bullet_holes_with_openai(image_path: str, shooter_name: str, sh
             logging.error(f"Raw response: {response}")
             logging.error(f"Raw result: {errorResult}")
             raise HTTPException(status_code=500, detail="OpenAI returned invalid JSON Format MAPV281_2.")
-        
+
         except TypeError as type_err:
             logging.error(f"Type mismatch in JSON -> ScoreResult: {type_err}")
             logging.error(f"Raw content: {content}")
@@ -448,24 +458,19 @@ async def compare_reports(payload: ComparisonRequest):
             f"PREVIOUS_TRIM: {json.dumps(pr_slim, ensure_ascii=False)}"
         )
 
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
+        if not OPENAI_API_KEY:
             raise HTTPException(status_code=500, detail="Missing OPENAI_API_KEY environment variable")
-        openai.api_key = api_key
 
-        completion = openai.ChatCompletion.create(
-            model="gpt-5.4-mini",
-            temperature=1,
-            #max_tokens=500,  # hard cap output size
-            max_completion_tokens=600,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            response_format={"type": "json_object"},
+        response = await client.responses.create(
+            model=COMPARE_MODEL,
+            reasoning={"effort": "low"},
+            instructions=system_prompt,
+            input=user_prompt,
+            max_output_tokens=600,
+            text={"format": {"type": "json_object"}},
         )
 
-        content = completion["choices"][0]["message"]["content"]
+        content = response.output_text
         try:
             return json.loads(content)
         except Exception:
@@ -485,4 +490,3 @@ async def compare_reports(payload: ComparisonRequest):
     except Exception as e:
         logging.exception("OpenAI comparison failed")
         raise HTTPException(status_code=500, detail=f"OpenAI comparison failed: {str(e)}")
-
