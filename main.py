@@ -306,12 +306,11 @@ Return every detected shot using normalized image coordinates:
 - (1, 1) = bottom-right corner
 
 For every detected shot return:
-
-{
-  "x": normalized horizontal coordinate,
-  "y": normalized vertical coordinate,
-  "confidence": confidence from 0.0 to 1.0
-}
+{{
+  "x": "normalized horizontal coordinate",
+  "y": "normalized vertical coordinate",
+  "confidence": "confidence from 0.0 to 1.0"
+}}
 
 Only return bullet holes that have reasonable visual evidence.
 
@@ -666,7 +665,7 @@ Return compact, syntactically valid JSON ONLY.
 
 Use EXACTLY the following keys and structure:
 
-{
+{{
   "shot_group_pattern": "text",
   "shot_vertical_pattern": "text",
   "shot_distribution_overview": "text",
@@ -687,13 +686,13 @@ Use EXACTLY the following keys and structure:
   "recommendations": "text",
   "corrective_drills": "text",
   "shots": [
-    {
+    {{
       "x": 0.0,
       "y": 0.0,
       "confidence": 0.0
-    }
+    }}
   ]
-}
+}}
 
 STRICT OUTPUT RULES:
 
