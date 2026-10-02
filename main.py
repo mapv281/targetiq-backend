@@ -938,29 +938,149 @@ async def compare_reports(payload: ComparisonRequest):
 # -----------------------------------------------------------------------------
 from datetime import datetime
 from statistics import mean
+from collections import defaultdict
 
 PROFILE_MODEL = os.getenv("OPENAI_PROFILE_MODEL", COMPARE_MODEL)
+
+class PerformanceShot(BaseModel):
+    x: float = Field(ge=0.0, le=1.0)
+    y: float = Field(ge=0.0, le=1.0)
+    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+
 
 class PerformanceSession(BaseModel):
     id: Optional[str] = None
     analyzed_at: Optional[str] = None
+
+    # Core performance
     accuracy_score: Optional[float] = None
     grouping_mm: Optional[float] = None
     accuracy_mm: Optional[float] = None
+    consistency_score: Optional[float] = None
     shot_count: Optional[int] = None
+
+    # Shot geometry
     horizontal_bias: Optional[float] = None
     vertical_bias: Optional[float] = None
     shot_group_pattern: Optional[str] = None
+    shot_vertical_pattern: Optional[str] = None
+
+    # Actual normalized shot coordinates
+    shots: list[PerformanceShot] = Field(default_factory=list)
+
+    # Session context
     target_distance: Optional[float] = None
     target_type: Optional[str] = None
+
+    firearm_make: Optional[str] = None
+    firearm_model: Optional[str] = None
+    firearm_caliber: Optional[str] = None
     firearm_label: Optional[str] = None
+
+    # Optional coaching/session metadata
+    drill_name: Optional[str] = None
+    training_goal: Optional[str] = None
 
 class PerformanceProfileRequest(BaseModel):
     shooter_name: Optional[str] = None
     training_goal: Optional[str] = None
     sessions: list[PerformanceSession] = Field(default_factory=list)
 
+
+class SkillMetric(BaseModel):
+    score: Optional[float] = None
+    trend: Optional[str] = None
+    change: Optional[float] = None
+
+
+class ShooterDNA(BaseModel):
+    accuracy: SkillMetric
+    precision: SkillMetric
+    consistency: SkillMetric
+    stability: SkillMetric
+    shot_placement: SkillMetric
+    trigger_control: SkillMetric
+    style: Optional[str] = None
+    focus_area: Optional[str] = None
+
+
+class HeatmapPoint(BaseModel):
+    x: float
+    y: float
+    confidence: Optional[float] = None
+
+
+class HistoricalHeatmap(BaseModel):
+    shots: list[HeatmapPoint] = Field(default_factory=list)
+    center_x: Optional[float] = None
+    center_y: Optional[float] = None
+    horizontal_spread: Optional[float] = None
+    vertical_spread: Optional[float] = None
+    shot_count: int = 0
+
+
+class DistancePerformance(BaseModel):
+    distance: float
+    sessions: int
+    average_group_mm: Optional[float] = None
+    best_group_mm: Optional[float] = None
+    average_accuracy: Optional[float] = None
+    consistency_score: Optional[float] = None
+
+
+class FirearmPerformance(BaseModel):
+    firearm: str
+    caliber: Optional[str] = None
+    sessions: int
+    average_group_mm: Optional[float] = None
+    best_group_mm: Optional[float] = None
+    average_accuracy: Optional[float] = None
+    consistency_score: Optional[float] = None
+    dominant_pattern: Optional[str] = None
+
+
+class PatternEvolutionPoint(BaseModel):
+    session_id: Optional[str] = None
+    date: Optional[str] = None
+    pattern: str
+    grouping_mm: Optional[float] = None
+    accuracy: Optional[float] = None
+
+
+class NextSessionGoal(BaseModel):
+    primary_focus: str
+    goal: str
+    recommended_drill: Optional[str] = None
+    distance: Optional[float] = None
+    rounds: Optional[int] = None
+    success_target: Optional[str] = None
+    rationale: Optional[str] = None
+
+
+class TrainingActivity(BaseModel):
+    date: str
+    sessions: int
+    targets: int
+    shots: int
+
+
+class TrainingVolume(BaseModel):
+    total_sessions: int
+    total_targets: int
+    total_shots: int
+    sessions_this_month: int
+    sessions_this_year: int
+
+
+class Milestone(BaseModel):
+    type: str
+    title: str
+    date: Optional[str] = None
+    value: Optional[str] = None
+    session_id: Optional[str] = None
+
 class PerformanceProfileResponse(BaseModel):
+    # Existing metrics
     sessions_analyzed: int
     current_streak: int
     accuracy_current: Optional[float] = None
@@ -975,6 +1095,23 @@ class PerformanceProfileResponse(BaseModel):
     next_goal: str
     highlights: list[str] = Field(default_factory=list)
     ai_insight: str
+
+    # New intelligence
+    shooter_dna: Optional[ShooterDNA] = None
+    historical_heatmap: Optional[HistoricalHeatmap] = None
+    pattern_evolution: list[PatternEvolutionPoint] = Field(default_factory=list)
+
+    repeatability_score: Optional[float] = None
+
+    distance_performance: list[DistancePerformance] = Field(default_factory=list)
+    firearm_performance: list[FirearmPerformance] = Field(default_factory=list)
+
+    training_activity: list[TrainingActivity] = Field(default_factory=list)
+    training_volume: Optional[TrainingVolume] = None
+
+    milestones: list[Milestone] = Field(default_factory=list)
+
+    next_session: Optional[NextSessionGoal] = None
 
 
 def _pct_change(current: Optional[float], previous: Optional[float]) -> Optional[float]:
@@ -1019,6 +1156,246 @@ def _consistency_score(groupings: list[float]) -> Optional[float]:
         return None
     cv = float(np.std(groupings)) / avg
     return round(max(0.0, min(100.0, 100.0 * (1.0 - cv))), 1)
+
+
+# -----------------------------------------------------------------------------
+# Expanded Performance Profile analytics (additive only)
+# -----------------------------------------------------------------------------
+
+def _repeatability_score(sessions: list[PerformanceSession], window: int = 10) -> Optional[float]:
+    groups = [float(x.grouping_mm) for x in sessions[-window:] if x.grouping_mm is not None and x.grouping_mm > 0]
+    if len(groups) < 3:
+        return None
+    avg = float(np.mean(groups))
+    if avg <= 0:
+        return None
+    cv = float(np.std(groups)) / avg
+    return round(max(0.0, min(100.0, 100.0 * (1.0 - min(cv, 1.0)))), 1)
+
+
+def _historical_heatmap(sessions: list[PerformanceSession], limit: int = 25) -> HistoricalHeatmap:
+    points = []
+    for session in sessions[-limit:]:
+        for shot in session.shots:
+            points.append(HeatmapPoint(x=shot.x, y=shot.y, confidence=shot.confidence))
+    if not points:
+        return HistoricalHeatmap(shots=[], shot_count=0)
+    xs = np.array([p.x for p in points], dtype=float)
+    ys = np.array([p.y for p in points], dtype=float)
+    return HistoricalHeatmap(
+        shots=points,
+        center_x=round(float(np.mean(xs)), 4),
+        center_y=round(float(np.mean(ys)), 4),
+        horizontal_spread=round(float(np.std(xs)), 4),
+        vertical_spread=round(float(np.std(ys)), 4),
+        shot_count=len(points),
+    )
+
+
+def _performance_by_distance(sessions: list[PerformanceSession]) -> list[DistancePerformance]:
+    buckets = {}
+    for session in sessions:
+        if session.target_distance is not None:
+            buckets.setdefault(float(session.target_distance), []).append(session)
+    output = []
+    for distance, items in sorted(buckets.items()):
+        groups = [float(x.grouping_mm) for x in items if x.grouping_mm is not None and x.grouping_mm > 0]
+        accuracy = [float(x.accuracy_score) for x in items if x.accuracy_score is not None]
+        output.append(DistancePerformance(
+            distance=distance,
+            sessions=len(items),
+            average_group_mm=_avg(groups),
+            best_group_mm=round(min(groups), 2) if groups else None,
+            average_accuracy=_avg(accuracy),
+            consistency_score=_consistency_score(groups),
+        ))
+    return output
+
+
+def _performance_by_firearm(sessions: list[PerformanceSession]) -> list[FirearmPerformance]:
+    buckets = {}
+    for session in sessions:
+        label = session.firearm_label or " ".join(
+            part for part in [session.firearm_make or "", session.firearm_model or ""] if part
+        ).strip() or "Unknown firearm"
+        key = (label, session.firearm_caliber or "")
+        buckets.setdefault(key, []).append(session)
+    output = []
+    for (label, caliber), items in buckets.items():
+        groups = [float(x.grouping_mm) for x in items if x.grouping_mm is not None and x.grouping_mm > 0]
+        accuracy = [float(x.accuracy_score) for x in items if x.accuracy_score is not None]
+        patterns = [x.shot_group_pattern.strip() for x in items if x.shot_group_pattern and x.shot_group_pattern.strip()]
+        output.append(FirearmPerformance(
+            firearm=label,
+            caliber=caliber or None,
+            sessions=len(items),
+            average_group_mm=_avg(groups),
+            best_group_mm=round(min(groups), 2) if groups else None,
+            average_accuracy=_avg(accuracy),
+            consistency_score=_consistency_score(groups),
+            dominant_pattern=max(set(patterns), key=patterns.count) if patterns else None,
+        ))
+    return sorted(output, key=lambda x: (-x.sessions, x.firearm))
+
+
+def _pattern_evolution(sessions: list[PerformanceSession], limit: int = 15) -> list[PatternEvolutionPoint]:
+    return [
+        PatternEvolutionPoint(
+            session_id=x.id,
+            date=x.analyzed_at,
+            pattern=x.shot_group_pattern,
+            grouping_mm=x.grouping_mm,
+            accuracy=x.accuracy_score,
+        )
+        for x in sessions[-limit:]
+        if x.shot_group_pattern
+    ]
+
+
+def _training_activity(sessions: list[PerformanceSession]) -> list[TrainingActivity]:
+    days = defaultdict(lambda: {"sessions": 0, "targets": 0, "shots": 0})
+    for session in sessions:
+        if not session.analyzed_at:
+            continue
+        try:
+            dt = datetime.fromisoformat(session.analyzed_at.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        day = dt.date().isoformat()
+        days[day]["sessions"] += 1
+        days[day]["targets"] += 1
+        days[day]["shots"] += session.shot_count if session.shot_count is not None else len(session.shots)
+    return [TrainingActivity(date=day, **values) for day, values in sorted(days.items())]
+
+
+def _training_volume(sessions: list[PerformanceSession]) -> TrainingVolume:
+    now = datetime.utcnow()
+    total_shots = 0
+    this_month = 0
+    this_year = 0
+    for session in sessions:
+        total_shots += session.shot_count if session.shot_count is not None else len(session.shots)
+        if not session.analyzed_at:
+            continue
+        try:
+            dt = datetime.fromisoformat(session.analyzed_at.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if dt.year == now.year:
+            this_year += 1
+            if dt.month == now.month:
+                this_month += 1
+    return TrainingVolume(
+        total_sessions=len(sessions),
+        total_targets=len(sessions),
+        total_shots=total_shots,
+        sessions_this_month=this_month,
+        sessions_this_year=this_year,
+    )
+
+
+def _metric_trend(current: Optional[float], previous: Optional[float], higher_is_better: bool = True):
+    if current is None or previous is None:
+        return None, None
+    change = round(current - previous, 1)
+    if abs(change) < 2:
+        return "stable", change
+    better = change > 0 if higher_is_better else change < 0
+    return ("improving" if better else "needs_attention"), change
+
+
+def _build_shooter_dna(sessions: list[PerformanceSession]) -> Optional[ShooterDNA]:
+    if len(sessions) < 3:
+        return None
+    recent = sessions[-5:]
+    prior = sessions[-10:-5]
+    recent_accuracy = _avg([x.accuracy_score for x in recent])
+    prior_accuracy = _avg([x.accuracy_score for x in prior])
+    recent_groups = [float(x.grouping_mm) for x in recent if x.grouping_mm is not None and x.grouping_mm > 0]
+    prior_groups = [float(x.grouping_mm) for x in prior if x.grouping_mm is not None and x.grouping_mm > 0]
+    recent_group = _avg(recent_groups)
+    prior_group = _avg(prior_groups)
+    consistency = _consistency_score(recent_groups)
+    prior_consistency = _consistency_score(prior_groups)
+    repeatability = _repeatability_score(sessions)
+
+    all_groups = [float(x.grouping_mm) for x in sessions if x.grouping_mm is not None and x.grouping_mm > 0]
+    precision = None
+    if recent_group is not None and len(all_groups) >= 2 and max(all_groups) > min(all_groups):
+        precision = round(max(0.0, min(100.0,
+            100.0 * (max(all_groups) - recent_group) / (max(all_groups) - min(all_groups)))), 1)
+
+    patterns = [x.shot_group_pattern.lower() for x in sessions[-10:] if x.shot_group_pattern]
+    centered = sum(1 for p in patterns if "center" in p and not any(t in p for t in ("left", "right", "low", "high")))
+    pattern_control = round(centered / len(patterns) * 100.0, 1) if len(patterns) >= 3 else None
+
+    accuracy_trend, accuracy_change = _metric_trend(recent_accuracy, prior_accuracy)
+    precision_trend, precision_change = _metric_trend(recent_group, prior_group, higher_is_better=False)
+    consistency_trend, consistency_change = _metric_trend(consistency, prior_consistency)
+
+    measurable = {
+        "Accuracy": recent_accuracy,
+        "Precision": precision,
+        "Consistency": consistency,
+        "Shot Placement": recent_accuracy,
+        "Pattern Control": pattern_control,
+        "Repeatability": repeatability,
+    }
+    available = {k: v for k, v in measurable.items() if v is not None}
+
+    # Stability is represented by observed group consistency. Trigger control is intentionally
+    # left unscored because a target image cannot directly observe trigger-finger behavior.
+    return ShooterDNA(
+        accuracy=SkillMetric(score=recent_accuracy, trend=accuracy_trend, change=accuracy_change),
+        precision=SkillMetric(score=precision, trend=precision_trend, change=precision_change),
+        consistency=SkillMetric(score=consistency, trend=consistency_trend, change=consistency_change),
+        stability=SkillMetric(score=consistency, trend=consistency_trend, change=consistency_change),
+        shot_placement=SkillMetric(score=recent_accuracy, trend=accuracy_trend, change=accuracy_change),
+        trigger_control=SkillMetric(score=None, trend=None, change=None),
+        style=f"{max(available, key=available.get)}-focused shooter" if available else None,
+        focus_area=min(available, key=available.get) if available else None,
+    )
+
+
+def _detect_milestones(sessions: list[PerformanceSession]) -> list[Milestone]:
+    if not sessions:
+        return []
+    output = [Milestone(type="first_analysis", title="First Analysis", date=sessions[0].analyzed_at, session_id=sessions[0].id)]
+    for count in (10, 25, 50, 100):
+        if len(sessions) >= count:
+            x = sessions[count - 1]
+            output.append(Milestone(type="session_count", title=f"{count} Sessions", date=x.analyzed_at, value=str(count), session_id=x.id))
+    groups = [x for x in sessions if x.grouping_mm is not None and x.grouping_mm > 0]
+    if groups:
+        best = min(groups, key=lambda x: float(x.grouping_mm))
+        output.append(Milestone(type="best_group", title="Personal Best Group", date=best.analyzed_at, value=f"{round(float(best.grouping_mm), 1)} mm", session_id=best.id))
+    accuracy = [x for x in sessions if x.accuracy_score is not None]
+    if accuracy:
+        best = max(accuracy, key=lambda x: float(x.accuracy_score))
+        output.append(Milestone(type="best_accuracy", title="Personal Best Accuracy", date=best.analyzed_at, value=str(round(float(best.accuracy_score), 1)), session_id=best.id))
+    return output
+
+
+def _build_next_session_goal(sessions: list[PerformanceSession], dominant_pattern: Optional[str], best_group: Optional[float]) -> Optional[NextSessionGoal]:
+    if not sessions:
+        return None
+    current = sessions[-1]
+    if best_group is not None:
+        goal_value = round(max(1.0, best_group * 0.95), 1)
+        goal = f"Set a new personal best below {goal_value} mm."
+        success_target = f"Complete a comparable group below {goal_value} mm."
+    else:
+        goal = "Complete another comparable session to strengthen your baseline."
+        success_target = "Record another comparable analyzed target."
+    return NextSessionGoal(
+        primary_focus=dominant_pattern or "Improve repeatable shot placement",
+        goal=goal,
+        recommended_drill=None,
+        distance=current.target_distance,
+        rounds=None,
+        success_target=success_target,
+        rationale="Based on your calculated recent performance history.",
+    )
 
 
 @app.post("/performance-profile", response_model=PerformanceProfileResponse)
@@ -1105,6 +1482,18 @@ async def build_performance_profile(payload: PerformanceProfileRequest):
         else:
             next_goal = "Complete a few more analyzed sessions to unlock a personalized goal."
 
+        # Expanded Performance Profile features (additive; existing metrics remain unchanged).
+        repeatability = _repeatability_score(sessions)
+        shooter_dna = _build_shooter_dna(sessions)
+        historical_heatmap = _historical_heatmap(sessions, limit=25)
+        pattern_evolution = _pattern_evolution(sessions)
+        distance_performance = _performance_by_distance(sessions)
+        firearm_performance = _performance_by_firearm(sessions)
+        training_activity = _training_activity(sessions)
+        training_volume = _training_volume(sessions)
+        milestones = _detect_milestones(sessions)
+        next_session = _build_next_session_goal(sessions, dominant_pattern, best_group)
+
         # Compact AI narrative. All statistics are calculated server-side so the model
         # interprets trends rather than inventing measurements.
         stats = {
@@ -1119,6 +1508,7 @@ async def build_performance_profile(payload: PerformanceProfileRequest):
             "dominant_pattern": dominant_pattern,
             "progress_status": progress_status,
             "training_goal": payload.training_goal,
+            "repeatability_score": repeatability,
         }
 
         ai_insight = "Keep logging sessions to reveal stronger performance trends."
@@ -1158,6 +1548,16 @@ async def build_performance_profile(payload: PerformanceProfileRequest):
             next_goal=next_goal,
             highlights=highlights[:4],
             ai_insight=ai_insight,
+            shooter_dna=shooter_dna,
+            historical_heatmap=historical_heatmap,
+            pattern_evolution=pattern_evolution,
+            repeatability_score=repeatability,
+            distance_performance=distance_performance,
+            firearm_performance=firearm_performance,
+            training_activity=training_activity,
+            training_volume=training_volume,
+            milestones=milestones,
+            next_session=next_session,
         )
     except Exception as e:
         logging.exception("Performance profile generation failed")
